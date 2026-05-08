@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load batitong %}
+{% block title %}{{ engagement.name }}{% endblock %}
+{% block crumb %}~/engagements/{{ engagement.short_id }}{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <div>
+      <h2 class="block__title">{{ engagement.name }}</h2>
+      <div class="block__meta">
+        <span class="mono">{{ engagement.short_id }}</span>
+        <span class="badge badge--mono">{{ engagement.get_objective_display }}</span>
+        <span class="status {{ engagement.status|status_class }}">{{ engagement.get_status_display }}</span>
+        {% if engagement.target %}<span class="mono">→ {{ engagement.target.value }}</span>{% endif %}
+        <span class="muted">created {{ engagement.created_at|date:'Y-m-d H:i' }} by {{ engagement.created_by }}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid grid--2">
+    <article class="card card--full">
+      <span class="card__num">{% numbered 1 2 %}</span>
+      <h3 class="card__title">Steps</h3>
+      <ol class="step-list">
+        {% for step in steps %}
+        <li class="step">
+          <header class="step__head">
+            <span class="step__order">{{ step.order|stringformat:"02d" }}</span>
+            <span class="step__title">{{ step.title }}</span>
+            <span class="status {{ step.status|status_class }}">{{ step.get_status_display }}</span>
+          </header>
+          {% if step.rationale %}<p class="step__rationale">{{ step.rationale }}</p>{% endif %}
+          <ul class="exec-list">
+            {% for exec in step.executions.all %}
+            <li class="exec exec--{{ exec.status }}" data-execution-id="{{ exec.id }}">
+              <code class="exec__cmd">{{ exec.tool_name }}</code>
+              <span class="status status--mini {{ exec.status|status_class }}">{{ exec.get_status_display }}</span>
+              {% if exec.duration_seconds %}<span class="muted mono">{{ exec.duration_seconds|floatformat:1 }}s</span>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        </li>
+        {% empty %}
+        <li class="muted">No steps yet.</li>
+        {% endfor %}
+      </ol>
+    </article>
+
+    <article class="card card--full terminal-card">
+      <span class="card__num">{% numbered 2 2 %}</span>
+      <h3 class="card__title">Live log</h3>
+      <div
+        class="terminal"
+        x-data="liveLog('{{ engagement.id }}')"
+        x-init="connect()"
+      >
+        <header class="terminal__header">
+          <span class="terminal__dot"></span>
+          <span class="terminal__dot"></span>
+          <span class="terminal__dot"></span>
+          <span class="terminal__title mono">batitong:~/engagement/{{ engagement.short_id }} · live</span>
+          <span class="terminal__status">
+            <template x-if="connected">
+              <span class="badge badge--ok">connected</span>
+            </template>
+            <template x-if="!connected">
+              <span class="badge badge--mono">disconnected</span>
+            </template>
+          </span>
+        </header>
+        <pre class="terminal__body" x-ref="body"></pre>
+      </div>
+    </article>
+  </div>
+
+  <article class="card card--full">
+    <span class="card__num">tool runs</span>
+    <h3 class="card__title">Tool executions</h3>
+    <table class="table">
+      <thead>
+        <tr><th>tool</th><th>status</th><th>duration</th><th>started</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for exec in executions %}
+        <tr>
+          <td><code class="code">{{ exec.tool_name }}</code></td>
+          <td><span class="status {{ exec.status|status_class }}">{{ exec.get_status_display }}</span></td>
+          <td>{% if exec.duration_seconds %}{{ exec.duration_seconds|floatformat:1 }}s{% else %}–{% endif %}</td>
+          <td>{% if exec.started_at %}{{ exec.started_at|date:'Y-m-d H:i:s' }}{% else %}–{% endif %}</td>
+          <td>
+            <details>
+              <summary class="link link--mono">view output</summary>
+              <pre class="output">{{ exec.output|default:'(no output)' }}</pre>
+              {% if exec.error_message %}
+                <pre class="output output--err">{{ exec.error_message }}</pre>
+              {% endif %}
+            </details>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="table__empty">No executions yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+{% endblock %}

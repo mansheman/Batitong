@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load batitong %}
+{% block title %}engagements{% endblock %}
+{% block crumb %}~/engagements{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Engagements</h2>
+    <a class="btn btn--ghost btn--sm" href="{% url 'mcp:catalog' %}">+ new from catalog</a>
+  </header>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>id</th>
+        <th>name</th>
+        <th>objective</th>
+        <th>target</th>
+        <th>status</th>
+        <th>created</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for eng in engagements %}
+      <tr>
+        <td><span class="mono">{{ eng.short_id }}</span></td>
+        <td>{{ eng.name }}</td>
+        <td><span class="badge badge--mono">{{ eng.get_objective_display }}</span></td>
+        <td>
+          {% if eng.target %}<span class="mono">{{ eng.target.value }}</span>
+          {% else %}<span class="muted">–</span>{% endif %}
+        </td>
+        <td><span class="status {{ eng.status|status_class }}">{{ eng.get_status_display }}</span></td>
+        <td><time datetime="{{ eng.created_at|date:'c' }}">{{ eng.created_at|date:'Y-m-d H:i' }}</time></td>
+        <td><a class="link link--mono" href="{% url 'engagements:detail' engagement_id=eng.id %}">open →</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="table__empty">
+        No engagements yet. Pick a tool in the
+        <a class="link" href="{% url 'mcp:catalog' %}">catalog</a> to start.
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

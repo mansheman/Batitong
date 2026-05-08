@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+hexstrike_env/
+
+# Django
+*.log
+*.sqlite3
+*.sqlite3-journal
+gui/staticfiles/
+gui/media/
+gui/db.sqlite3
+local_settings.py
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Node (if any later)
+node_modules/
+
+# Hexstrike runtime
+hexstrike-ai/hexstrike.log
+hexstrike-ai/__pycache__/
+
+# Project local
+*.bak

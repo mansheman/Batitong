@@ -1,0 +1,90 @@
+[tool.poetry]
+name = "batitong"
+version = "0.1.0"
+description = "Batitong — GUI for MCP-driven offensive security tooling (Kali MCP + HexStrike-AI)"
+authors = ["mansheman <mansheman.whide@gmail.com>"]
+readme = "README.md"
+license = "MIT"
+packages = [{ include = "config", from = "gui" }, { include = "apps", from = "gui" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.0"
+djangorestframework = "^3.15"
+django-environ = "^0.11"
+psycopg = { extras = ["binary"], version = "^3.2" }
+gunicorn = "^23.0"
+uvicorn = { extras = ["standard"], version = "^0.30" }
+channels = { extras = ["daphne"], version = "^4.1" }
+channels-redis = "^4.2"
+celery = { extras = ["redis"], version = "^5.4" }
+redis = "^5.1"
+mcp = "^1.0"
+httpx = "^0.27"
+cryptography = "^43.0"
+pydantic = "^2.9"
+whitenoise = "^6.7"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3"
+pytest-django = "^4.9"
+pytest-asyncio = "^0.24"
+ruff = "^0.7"
+black = "^24.10"
+mypy = "^1.13"
+django-stubs = "^5.1"
+pre-commit = "^4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [
+    "migrations",
+    "hexstrike-ai",
+    "Scripts",
+    "kali_mcp_server.py",
+    ".venv",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "DJ"]
+ignore = [
+    "E501",  # line length handled by black
+    "B008",  # function calls in default args (Django pattern)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/settings/*.py" = ["F405", "F403"]
+"**/tests/*.py" = ["S101"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+extend-exclude = '''
+/(
+  migrations
+| hexstrike-ai
+| Scripts
+| \.venv
+)/
+'''
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python_files = "test_*.py tests.py"
+pythonpath = ["gui"]
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main"]
+strict = false
+ignore_missing_imports = true
+exclude = ["migrations/", "hexstrike-ai/", "Scripts/"]
+
+[tool.django-stubs]
+django_settings_module = "config.settings.dev"
