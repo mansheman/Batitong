@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load batitong %}
+{% block title %}dashboard{% endblock %}
+{% block crumb %}~/dashboard{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1 class="hero__title">
+    Run, observe, and report —<br />
+    one console for every MCP tool.
+  </h1>
+  <p class="hero__sub">
+    {{ total_tools }} MCP tools wired up across Kali MCP and HexStrike-AI.
+    Plan a chain, or fire a single command.
+  </p>
+  <div class="hero__actions">
+    <a href="{% url 'mcp:catalog' %}" class="btn btn--primary">→ browse tool catalog</a>
+    <a href="{% url 'engagements:list' %}" class="btn btn--ghost">▶ engagements</a>
+  </div>
+</section>
+
+<section class="grid grid--3">
+  <div class="card">
+    <span class="card__num">01 / 03</span>
+    <h2 class="card__title">Tool Catalog</h2>
+    <p class="card__body">
+      <strong class="metric">{{ total_tools }}</strong> tools registered.
+      Filter by MITRE ATT&amp;CK tactic, severity, or provider.
+    </p>
+    <a href="{% url 'mcp:catalog' %}" class="card__cta">browse catalog →</a>
+  </div>
+
+  <div class="card">
+    <span class="card__num">02 / 03</span>
+    <h2 class="card__title">Active Engagements</h2>
+    <p class="card__body">
+      <strong class="metric">{{ active_count }}</strong> running right now in this workspace.
+    </p>
+    <a href="{% url 'engagements:list' %}" class="card__cta">view engagements →</a>
+  </div>
+
+  <div class="card">
+    <span class="card__num">03 / 03</span>
+    <h2 class="card__title">MCP Providers</h2>
+    <ul class="provider-list">
+      {% for p in providers %}
+      <li class="provider">
+        <span class="provider__name">{{ p.obj.name }}</span>
+        {% if p.obj.last_health_ok %}
+          <span class="badge badge--ok">healthy</span>
+        {% else %}
+          <span class="badge badge--err">down</span>
+        {% endif %}
+        <span class="provider__meta">{{ p.tool_count }} tools · synced {{ p.synced }}</span>
+      </li>
+      {% empty %}
+      <li class="provider provider--empty">
+        No providers yet. Run <code class="code">make sync-tools</code>.
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Recent engagements</h2>
+    <a class="block__more" href="{% url 'engagements:list' %}">all engagements →</a>
+  </header>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>name</th>
+        <th>objective</th>
+        <th>status</th>
+        <th>created</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for eng in recent_engagements %}
+      <tr>
+        <td><span class="mono">{{ eng.short_id }}</span> · {{ eng.name }}</td>
+        <td><span class="badge badge--mono">{{ eng.get_objective_display }}</span></td>
+        <td><span class="status {{ eng.status|status_class }}">{{ eng.get_status_display }}</span></td>
+        <td><time datetime="{{ eng.created_at|date:'c' }}">{{ eng.created_at|date:'Y-m-d H:i' }}</time></td>
+        <td><a class="link link--mono" href="{% url 'engagements:detail' engagement_id=eng.id %}">open →</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="table__empty">No engagements yet — pick a tool from the catalog to start.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

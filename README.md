@@ -1,4 +1,80 @@
-# Kali MCP Server
+# Batitong
+
+> **Phase 1 (Foundation)** — Django GUI + Docker Compose stack on top of the
+> Kali MCP server and HexStrike-AI control plane. See [DESIGN.md](DESIGN.md)
+> for the full architectural blueprint.
+
+Batitong is a developer-focused web console for **MCP-driven offensive
+security tooling**. It wraps two existing projects vendored in this repo:
+
+- `kali_mcp_server.py` — a [FastMCP](https://github.com/modelcontextprotocol/python-sdk)
+  server exposing 82 Kali Linux tools over `streamable-http` (described
+  further down this file).
+- `hexstrike-ai/` — a Flask-based AI control plane that produces target
+  profiles and execution plans.
+
+Phase 1 ships:
+
+- Django 5 + DRF + Channels skeleton with apps for `accounts`, `targets`,
+  `engagements`, `mcp`, and `ui`.
+- An MCP adapter layer (`apps/mcp/clients/`) that talks to both Kali MCP and
+  HexStrike, plus a `sync_mcp_tools` management command that mirrors the
+  upstream tool catalog into Postgres.
+- **Manual Mode**: browse the tool catalog, pick a tool, fill an
+  auto-generated form, run it. Output is streamed live to the browser via
+  WebSocket Channels backed by Redis.
+- A dark, terminal-inspired UI with JetBrains Mono / Inter typography,
+  numbered sections, severity badges, and live-log terminal panels.
+- Single-command Docker Compose (`docker compose --profile full up -d --build`)
+  bringing up Postgres, Redis, the Django ASGI server, a Celery worker,
+  Kali MCP, HexStrike API, and Ollama (with auto-pulled models).
+
+### Quick start (laptop dev)
+
+```bash
+git clone https://github.com/mansheman/Batitong.git
+cd Batitong
+cp .env.example .env
+
+# Generate strong values for SECRET_KEY and FERNET_KEY (one-liner):
+python -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(64))" >> .env
+python -c "from cryptography.fernet import Fernet; print('FERNET_KEY=' + Fernet.generate_key().decode())" >> .env
+
+# Build and start everything (heavy first build — Kali image is large):
+docker compose --profile full up -d --build
+
+# Once healthy, sync the tool registry from the running MCP servers:
+docker compose exec django-web python manage.py sync_mcp_tools --bootstrap
+```
+
+Open <http://localhost:8000>, log in with the seeded admin credentials from
+your `.env` (`DJANGO_SUPERUSER_USERNAME` / `DJANGO_SUPERUSER_PASSWORD`).
+
+If you only want the control plane without the heavy tool images:
+
+```bash
+docker compose --profile core up -d --build
+```
+
+### LLM strategy (Phase 2 wiring)
+
+We use a **hybrid** strategy:
+
+- **Local default** — `ollama` container with auto-pulled models
+  (`qwen2.5-coder:7b`, `llama3.1:8b`, `phi3:mini` by default).
+- **Cloud option** — the official **GitHub Models API** via
+  `https://models.inference.ai.azure.com` (set `GITHUB_MODELS_TOKEN` in
+  `.env` to enable). This is **not** the same as the GitHub Copilot editor
+  plugin, whose terms of service forbid backend / unattended use.
+
+The LLM router itself ships in Phase 2; Phase 1 only stores the configuration
+and shows it on the Settings page.
+
+---
+
+# Kali MCP Server (vendored)
+
+The original Kali MCP server documentation is preserved below.
 
 A Model Context Protocol (MCP) server that exposes Kali Linux penetration testing tools as structured, callable tools for large language models. Designed for integration with VS Code GitHub Copilot and any MCP-compatible LLM client.
 

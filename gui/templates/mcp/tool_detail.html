@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load batitong %}
+{% block title %}{{ tool.name }}{% endblock %}
+{% block crumb %}~/tools/{{ tool.name }}{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <div>
+      <h2 class="block__title">{{ tool.name }}</h2>
+      <div class="block__meta">
+        <span class="badge badge--mono">{{ tool.provider.kind }}</span>
+        <span class="badge {{ tool.risk_level|severity_class }}">{{ tool.get_risk_level_display }} risk</span>
+        <span class="badge badge--mono">{{ tool.display_tactic }}</span>
+      </div>
+    </div>
+    <a class="btn btn--ghost btn--sm" href="{% url 'mcp:catalog' %}">← back to catalog</a>
+  </header>
+
+  {% if tool.description %}
+    <pre class="block__desc">{{ tool.description }}</pre>
+  {% endif %}
+
+  <article class="card card--full">
+    <span class="card__num">{% numbered 1 1 %}</span>
+    <h3 class="card__title">Run tool (manual mode)</h3>
+
+    <form method="post" action="{% url 'mcp:run_tool' tool_id=tool.id %}" class="form-grid">
+      {% csrf_token %}
+
+      <label class="field">
+        <span class="field__label">label <span class="muted">(optional)</span></span>
+        <input class="input input--mono" type="text" name="label"
+               placeholder="Manual: {{ tool.name }}" />
+      </label>
+
+      {% for prop_name, prop in input_properties.items %}
+      <label class="field">
+        <span class="field__label">
+          {{ prop_name }}
+          {% if prop_name in required_inputs %}<span class="muted">*</span>{% endif %}
+          {% if prop.type %}<span class="badge badge--mono">{{ prop.type }}</span>{% endif %}
+        </span>
+        {% if prop.type == 'boolean' %}
+          <input class="input input--mono" type="checkbox" name="{{ prop_name }}" value="true" />
+        {% elif prop.type == 'integer' or prop.type == 'number' %}
+          <input class="input input--mono" type="number" name="{{ prop_name }}"
+                 step="{% if prop.type == 'number' %}any{% else %}1{% endif %}"
+                 {% if prop.default is not None %}value="{{ prop.default }}"{% endif %}
+                 {% if prop_name in required_inputs %}required{% endif %} />
+        {% elif prop.type == 'array' or prop.type == 'object' %}
+          <textarea class="input input--mono" name="{{ prop_name }}" rows="4"
+                    placeholder="{% if prop.type == 'array' %}one item per line{% else %}JSON object{% endif %}"
+                    {% if prop_name in required_inputs %}required{% endif %}>{% if prop.default %}{{ prop.default }}{% endif %}</textarea>
+        {% else %}
+          <input class="input input--mono" type="text" name="{{ prop_name }}"
+                 {% if prop.default %}value="{{ prop.default }}"{% endif %}
+                 {% if prop_name in required_inputs %}required{% endif %} />
+        {% endif %}
+        {% if prop.description %}<small class="field__hint">{{ prop.description }}</small>{% endif %}
+      </label>
+      {% empty %}
+      <p class="muted">This tool takes no arguments.</p>
+      {% endfor %}
+
+      <div class="form-grid__actions">
+        <button class="btn btn--primary" type="submit">→ queue execution</button>
+        <a class="btn btn--ghost" href="{% url 'mcp:catalog' %}">cancel</a>
+      </div>
+    </form>
+  </article>
+
+  <article class="card card--full">
+    <span class="card__num">schema</span>
+    <h3 class="card__title">JSON input schema</h3>
+    <pre class="output">{{ tool.schema|stringformat:'s' }}</pre>
+  </article>
+</section>
+{% endblock %}

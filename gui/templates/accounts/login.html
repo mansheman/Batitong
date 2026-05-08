@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}login{% endblock %}
+
+{% block content %}
+<div class="auth">
+  <div class="auth__card">
+    <div class="auth__brand">
+      <img src="{% static 'img/logo.svg' %}" alt="batitong" class="auth__logo" />
+      <h1 class="auth__title">batitong</h1>
+      <p class="auth__sub">MCP-driven offensive security console</p>
+    </div>
+
+    <form method="post" class="auth__form">
+      {% csrf_token %}
+      {% if error %}
+        <div class="alert alert--err">{{ error }}</div>
+      {% endif %}
+      <label class="field">
+        <span class="field__label">username</span>
+        <input
+          name="username"
+          type="text"
+          autocomplete="username"
+          required
+          autofocus
+          class="input input--mono"
+        />
+      </label>
+      <label class="field">
+        <span class="field__label">password</span>
+        <input
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          class="input input--mono"
+        />
+      </label>
+      <button type="submit" class="btn btn--primary btn--block">→ sign in</button>
+    </form>
+
+    <div class="auth__hints">
+      <span class="badge">v{{ BATITONG_VERSION }}</span>
+      <span class="badge badge--mono">open source</span>
+      <span class="badge badge--mono">MIT licensed</span>
+    </div>
+
+    <pre class="auth__cli"><span class="prompt__cwd">~/batitong</span> · ./batitong start --target acme.corp</pre>
+  </div>
+</div>
+{% endblock %}

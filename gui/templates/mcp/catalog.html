@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load batitong %}
+{% block title %}tool catalog{% endblock %}
+{% block crumb %}~/tools{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <div>
+      <h2 class="block__title">Tool catalog</h2>
+      <p class="block__sub muted">
+        {{ tool_count }} tools across {{ providers|length }} providers · grouped by MITRE ATT&amp;CK tactic.
+      </p>
+    </div>
+    <a class="btn btn--ghost btn--sm" href="{% url 'engagements:list' %}">view engagements →</a>
+  </header>
+
+  <form class="filters" method="get" action="">
+    <input type="search" name="q" value="{{ search_query }}" placeholder="search by name / description"
+           class="input input--mono input--block" />
+    <select name="tactic" class="input">
+      <option value="">all tactics</option>
+      {% for value, label in tactic_choices %}
+        <option value="{{ value }}" {% if filter_tactic == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="risk" class="input">
+      <option value="">all risk</option>
+      {% for value, label in risk_choices %}
+        <option value="{{ value }}" {% if filter_risk == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="provider" class="input">
+      <option value="">all providers</option>
+      <option value="kali" {% if filter_provider == 'kali' %}selected{% endif %}>kali-mcp</option>
+      <option value="hexstrike" {% if filter_provider == 'hexstrike' %}selected{% endif %}>hexstrike-api</option>
+    </select>
+    <button class="btn btn--primary btn--sm" type="submit">apply</button>
+    <a class="btn btn--ghost btn--sm" href="{% url 'mcp:catalog' %}">reset</a>
+  </form>
+
+  {% for tactic, tools in grouped_tools.items %}
+  <article class="block block--sub">
+    <header class="block__header">
+      <h3 class="block__title block__title--sm">{{ tactic }}</h3>
+      <span class="badge badge--mono">{{ tools|length }} tools</span>
+    </header>
+    <div class="grid grid--3">
+      {% for tool in tools %}
+      <a class="tool-card" href="{% url 'mcp:tool_detail' tool_id=tool.id %}">
+        <header class="tool-card__head">
+          <span class="badge badge--mono">{{ tool.provider.kind }}</span>
+          <span class="badge {{ tool.risk_level|severity_class }}">{{ tool.get_risk_level_display }}</span>
+        </header>
+        <h4 class="tool-card__name">{{ tool.name }}</h4>
+        <p class="tool-card__desc">{{ tool.description|default:'(no description)'|truncatechars:160 }}</p>
+        <span class="tool-card__cta">configure & run →</span>
+      </a>
+      {% endfor %}
+    </div>
+  </article>
+  {% empty %}
+    <p class="empty__body">
+      No tools registered yet. From the project root, run:
+      <code class="code">make sync-tools</code>
+    </p>
+  {% endfor %}
+</section>
+{% endblock %}

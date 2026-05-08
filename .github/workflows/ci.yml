@@ -1,0 +1,71 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pipx install poetry==1.8.4
+
+      - name: Cache Poetry venv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: poetry-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install dependencies
+        run: poetry install --no-root --with dev --no-interaction
+
+      - name: Ruff
+        run: poetry run ruff check gui/
+
+      - name: Black
+        run: poetry run black --check gui/
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pipx install poetry==1.8.4
+
+      - name: Cache Poetry venv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: poetry-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install dependencies
+        run: poetry install --no-root --with dev --no-interaction
+
+      - name: Pytest
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.test
+        run: poetry run pytest -x -ra
