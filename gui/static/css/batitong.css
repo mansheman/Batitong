@@ -499,19 +499,32 @@ textarea.input { resize: vertical; min-height: 80px; }
   overflow-y: auto;
   max-height: 60vh;
 }
-.chat__form {
+.chat__form,
+.chat__compose {
   border-top: 1px solid var(--line);
   padding: var(--s-3);
   display: flex;
   flex-direction: column;
   gap: var(--s-2);
 }
+.chat__compose__row {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.chat__textarea {
+  width: 100%;
+  resize: vertical;
+}
+.chat__msg__time { margin-left: auto; }
+.chat__msg__args summary { cursor: pointer; color: var(--text-muted); }
 .chat__sidebar {
   display: flex;
   flex-direction: column;
   gap: var(--s-3);
 }
-.chat-msg {
+.chat__msg {
   background: var(--bg-3);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
@@ -522,7 +535,7 @@ textarea.input { resize: vertical; min-height: 80px; }
   flex-direction: column;
   gap: var(--s-2);
 }
-.chat-msg__head {
+.chat__msg__head {
   display: flex;
   gap: var(--s-2);
   align-items: center;
@@ -530,17 +543,17 @@ textarea.input { resize: vertical; min-height: 80px; }
   font-size: 11px;
   color: var(--text-muted);
 }
-.chat-msg__role { color: var(--accent); text-transform: uppercase; }
-.chat-msg__body { white-space: pre-wrap; word-break: break-word; color: var(--text); }
-.chat-msg--user { border-color: rgba(0, 255, 136, .35); }
-.chat-msg--assistant {}
-.chat-msg--tool { background: #0d0d0d; }
-.chat-msg--tool .chat-msg__body { font-family: var(--font-mono); font-size: 12.5px; color: #b9f7c2; }
-.chat-msg--approval {
+.chat__msg__role { color: var(--accent); text-transform: uppercase; }
+.chat__msg__body { white-space: pre-wrap; word-break: break-word; color: var(--text); }
+.chat__msg--user { border-color: rgba(0, 255, 136, .35); }
+.chat__msg--assistant {}
+.chat__msg--tool { background: #0d0d0d; }
+.chat__msg--tool .chat__msg__body { font-family: var(--font-mono); font-size: 12.5px; color: #b9f7c2; }
+.chat__msg--approval {
   border-color: rgba(255, 184, 77, .45);
   background: rgba(255, 184, 77, .06);
 }
-.chat-msg--approval .chat-msg__role { color: #ffb84d; }
+.chat__msg--approval .chat__msg__role { color: #ffb84d; }
 
 /* approval card */
 .approval-card {
