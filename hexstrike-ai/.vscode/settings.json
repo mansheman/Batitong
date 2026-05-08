@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "hexstrike": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "/home/h3llo/Documents/0x-lab/Pen-AI/hexstrike-ai/hexstrike_mcp.py",
+        "--server",
+        "http://localhost:8888"
+      ]
+    }
+  },
+  "inputs": []
+}

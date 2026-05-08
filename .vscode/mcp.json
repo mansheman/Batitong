@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "kali-mcp": {
+      "type": "http",
+      "url": "http://127.0.0.1:5000/mcp",
+      "displayName": "Kali MCP (local)",
+      "description": "Local Kali MCP server for tools/resources"
+    }
+  }
+}

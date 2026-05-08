@@ -1,0 +1,11 @@
+{
+  "chat.mcp.discovery.enabled": {
+    "claude-desktop": true,
+    "windsurf": true,
+    "cursor-global": true,
+    "cursor-workspace": true
+  },
+  "chat.agent.enabled": true,
+  "chat.mcp.access": "all",
+  "chat.mcp.allowInsecureHttp": true
+}
