@@ -14,7 +14,19 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 # Initialize Django ASGI before importing app routes that use ORM/models.
 django_asgi_app = get_asgi_application()
 
-from apps.engagements.routing import websocket_urlpatterns  # noqa: E402
+from apps.approvals.routing import (  # noqa: E402
+    websocket_urlpatterns as approval_ws_patterns,
+)
+from apps.engagements.routing import (  # noqa: E402
+    websocket_urlpatterns as engagement_ws_patterns,
+)
+from apps.llm.routing import (  # noqa: E402
+    websocket_urlpatterns as llm_ws_patterns,
+)
+
+websocket_urlpatterns = (
+    list(engagement_ws_patterns) + list(llm_ws_patterns) + list(approval_ws_patterns)
+)
 
 application = ProtocolTypeRouter(
     {

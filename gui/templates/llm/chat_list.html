@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}chat{% endblock %}
+{% block crumb %}~/chat{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Chat sessions</h2>
+    <a href="{% url 'llm:new' %}" class="btn btn--primary">+ new chat</a>
+  </header>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>title</th>
+        <th>provider</th>
+        <th>model</th>
+        <th>busy</th>
+        <th>updated</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in sessions %}
+      <tr>
+        <td><span class="mono">{{ s.short_id }}</span> · {{ s.display_title }}</td>
+        <td><span class="badge badge--mono">{{ s.provider_kind }}</span></td>
+        <td><span class="badge badge--mono">{{ s.model_name|default:"(default)" }}</span></td>
+        <td>
+          {% if s.is_busy %}
+            <span class="badge badge--live">running</span>
+          {% else %}
+            <span class="badge">idle</span>
+          {% endif %}
+        </td>
+        <td><time datetime="{{ s.updated_at|date:'c' }}">{{ s.updated_at|date:'Y-m-d H:i' }}</time></td>
+        <td><a href="{% url 'llm:detail' session_id=s.id %}" class="link link--mono">open →</a></td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="table__empty">
+          No chats yet — start one to plan an attack via the LLM router.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

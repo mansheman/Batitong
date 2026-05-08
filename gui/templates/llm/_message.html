@@ -1,0 +1,21 @@
+{# A single chat message rendered into the log. #}
+<div class="chat__msg chat__msg--{{ m.role }}">
+  <div class="chat__msg__head">
+    {{ m.role }}{% if m.tool_name %} · {{ m.tool_name }}{% endif %}
+    <time class="chat__msg__time">{{ m.created_at|date:'H:i:s' }}</time>
+  </div>
+  {% if m.role == 'approval' %}
+    <p class="chat__msg__body">{{ m.content }}</p>
+    {% if m.approval %}
+      <a href="{% url 'approvals:detail' approval_id=m.approval_id %}" class="link link--mono">→ open approval gate</a>
+    {% endif %}
+  {% else %}
+    <pre class="chat__msg__body">{{ m.content }}</pre>
+  {% endif %}
+  {% if m.tool_arguments %}
+    <details class="chat__msg__args">
+      <summary>arguments</summary>
+      <pre class="output">{{ m.tool_arguments|pprint }}</pre>
+    </details>
+  {% endif %}
+</div>

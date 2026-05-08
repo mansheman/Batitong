@@ -5,11 +5,15 @@ from __future__ import annotations
 import logging
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
+from apps.approvals.models import ApprovalRequest
+from apps.credentials.models import WorkspaceCredential
 from apps.engagements.models import Engagement
+from apps.llm.adapters.github_models import GITHUB_MODELS_OPTIONS
 from apps.mcp.models import MCPProvider, MCPTool
 from apps.mcp.services import format_synced_at
 
@@ -58,10 +62,46 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     )
 
 
+def _can_manage_workspace(request: HttpRequest) -> bool:
+    membership = getattr(request, "membership", None)
+    return bool(membership and membership.can_approve_high_risk)
+
+
 @login_required
 def settings_view(request: HttpRequest) -> HttpResponse:
     workspace = getattr(request, "workspace", None)
+
+    if request.method == "POST":
+        if workspace is None:
+            messages.error(request, "No active workspace.")
+            return redirect("ui:settings")
+        if not _can_manage_workspace(request):
+            messages.error(request, "Only Lead/Owner roles can change router settings.")
+            return redirect("ui:settings")
+        action = request.POST.get("action", "")
+        if action == "router":
+            workspace.privacy_mode = bool(request.POST.get("privacy_mode"))
+            workspace.save(update_fields=["privacy_mode", "updated_at"])
+            messages.success(
+                request,
+                "Privacy mode is now {}".format(
+                    "ON — cloud LLMs disabled."
+                    if workspace.privacy_mode
+                    else "OFF — cloud LLMs allowed."
+                ),
+            )
+        return redirect("ui:settings")
+
     providers = MCPProvider.objects.all()
+
+    pending_approvals = 0
+    creds_count = 0
+    if workspace is not None:
+        pending_approvals = ApprovalRequest.objects.filter(
+            workspace=workspace, status=ApprovalRequest.Status.PENDING
+        ).count()
+        creds_count = WorkspaceCredential.objects.filter(workspace=workspace).count()
+
     return render(
         request,
         "ui/settings.html",
@@ -76,6 +116,14 @@ def settings_view(request: HttpRequest) -> HttpResponse:
             "ollama_url": settings.OLLAMA_BASE_URL,
             "github_models_url": settings.GITHUB_MODELS_BASE_URL,
             "github_models_token_set": bool(settings.GITHUB_MODELS_TOKEN),
+            "github_models_options": GITHUB_MODELS_OPTIONS,
+            "default_provider": getattr(settings, "LLM_DEFAULT_PROVIDER", "ollama"),
+            "prompt_logging_mode": getattr(settings, "LLM_PROMPT_LOGGING", "full"),
+            "approval_gate_enabled": getattr(settings, "APPROVAL_GATE_ENABLED", True),
+            "approval_timeout_minutes": getattr(settings, "APPROVAL_TIMEOUT_MINUTES", 60),
+            "pending_approvals": pending_approvals,
+            "creds_count": creds_count,
+            "can_manage": _can_manage_workspace(request),
             "workspace": workspace,
         },
     )

@@ -28,6 +28,9 @@
         <a href="{% url 'ui:dashboard' %}" class="nav__item {% if request.resolver_match.namespace == 'ui' and request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">
           <span class="nav__icon">▤</span><span class="nav__label">Dashboard</span>
         </a>
+        <a href="{% url 'llm:list' %}" class="nav__item {% if request.resolver_match.namespace == 'llm' %}is-active{% endif %}">
+          <span class="nav__icon">⌘</span><span class="nav__label">Chat</span>
+        </a>
         <a href="{% url 'engagements:list' %}" class="nav__item {% if request.resolver_match.namespace == 'engagements' %}is-active{% endif %}">
           <span class="nav__icon">▶</span><span class="nav__label">Engagements</span>
         </a>
@@ -37,6 +40,17 @@
         <a href="{% url 'targets:list' %}" class="nav__item {% if request.resolver_match.namespace == 'targets' %}is-active{% endif %}">
           <span class="nav__icon">◎</span><span class="nav__label">Targets</span>
         </a>
+        {% if active_membership and active_membership.can_approve_high_risk %}
+        <a href="{% url 'approvals:list' %}" class="nav__item {% if request.resolver_match.namespace == 'approvals' %}is-active{% endif %}">
+          <span class="nav__icon">⚑</span><span class="nav__label">Approvals</span>
+          {% if pending_approvals_count %}
+            <span class="nav__count">{{ pending_approvals_count }}</span>
+          {% endif %}
+        </a>
+        <a href="{% url 'credentials:list' %}" class="nav__item {% if request.resolver_match.namespace == 'credentials' %}is-active{% endif %}">
+          <span class="nav__icon">⌬</span><span class="nav__label">Credentials</span>
+        </a>
+        {% endif %}
         <a href="{% url 'ui:settings' %}" class="nav__item {% if request.resolver_match.namespace == 'ui' and request.resolver_match.url_name == 'settings' %}is-active{% endif %}">
           <span class="nav__icon">⚒</span><span class="nav__label">Settings</span>
         </a>
@@ -69,6 +83,15 @@
         </div>
         <div class="topbar__right">
           {% block topbar_right %}{% endblock %}
+          {% if active_membership and active_membership.can_approve_high_risk %}
+            <a href="{% url 'approvals:list' %}" class="bell {% if pending_approvals_count %}bell--alert{% endif %}" title="pending approvals">
+              <span class="bell__icon">⚑</span>
+              <span class="bell__count">{{ pending_approvals_count|default:0 }}</span>
+            </a>
+          {% endif %}
+          {% if active_workspace and active_workspace.privacy_mode %}
+            <span class="badge badge--mono" title="LLM router forced to local providers">privacy:on</span>
+          {% endif %}
           <span class="badge badge--live">live</span>
           <span class="badge badge--mono">{{ BATITONG_PROJECT_NAME }}</span>
         </div>

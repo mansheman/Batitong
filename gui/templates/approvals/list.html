@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}approvals{% endblock %}
+{% block crumb %}~/approvals{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Pending approvals</h2>
+    <span class="badge badge--mono">{{ pending|length }}</span>
+  </header>
+
+  <table class="table">
+    <thead>
+      <tr><th>tool</th><th>risk</th><th>requested by</th><th>summary</th><th>created</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for a in pending %}
+      <tr>
+        <td><code class="code">{{ a.execution.tool_name }}</code></td>
+        <td>
+          <span class="badge badge--{% if a.risk_level == 'crit' %}crit{% else %}high{% endif %}">{{ a.risk_level }}</span>
+        </td>
+        <td>{{ a.requested_by.username }}</td>
+        <td class="mono">{{ a.summary }}</td>
+        <td><time>{{ a.created_at|date:'Y-m-d H:i' }}</time></td>
+        <td><a class="link link--mono" href="{% url 'approvals:detail' approval_id=a.id %}">review →</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="table__empty">No pending approvals — nothing risky is in flight.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Recent decisions</h2>
+  </header>
+  <table class="table">
+    <thead>
+      <tr><th>tool</th><th>status</th><th>decided by</th><th>at</th></tr>
+    </thead>
+    <tbody>
+      {% for a in history %}
+      <tr>
+        <td><code class="code">{{ a.execution.tool_name }}</code></td>
+        <td><span class="badge {% if a.status == 'approved' %}badge--ok{% else %}badge--err{% endif %}">{{ a.status }}</span></td>
+        <td>{{ a.decided_by.username|default:'–' }}</td>
+        <td><time>{{ a.decided_at|date:'Y-m-d H:i' }}</time></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="table__empty">No decisions yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
