@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}approval · {{ approval.short_id }}{% endblock %}
+{% block crumb %}~/approvals/{{ approval.short_id }}{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Approval gate</h2>
+    <span class="badge badge--{% if approval.risk_level == 'crit' %}crit{% else %}high{% endif %}">{{ approval.risk_level }}</span>
+  </header>
+
+  <article class="card card--full">
+    <span class="card__num">01 / 03</span>
+    <h3 class="card__title">Request</h3>
+    <p class="card__body"><strong>Tool:</strong> <code class="code">{{ approval.execution.tool_name }}</code></p>
+    <p class="card__body"><strong>Engagement:</strong>
+      <a class="link link--mono" href="{% url 'engagements:detail' engagement_id=approval.execution.step.engagement_id %}">
+        {{ approval.execution.step.engagement_id|stringformat:"s"|slice:":8" }} ↗
+      </a>
+    </p>
+    <p class="card__body"><strong>Requested by:</strong> {{ approval.requested_by.username }}</p>
+    <p class="card__body"><strong>Summary:</strong> <span class="mono">{{ approval.summary }}</span></p>
+  </article>
+
+  <article class="card card--full">
+    <span class="card__num">02 / 03</span>
+    <h3 class="card__title">Arguments</h3>
+    <pre class="output">{{ approval.execution.arguments|pprint }}</pre>
+    {% if approval.rationale %}
+    <h4 class="card__title" style="margin-top:1em">Planner rationale</h4>
+    <pre class="output">{{ approval.rationale }}</pre>
+    {% endif %}
+  </article>
+
+  <article class="card card--full">
+    <span class="card__num">03 / 03</span>
+    <h3 class="card__title">Decide</h3>
+    {% if approval.is_pending %}
+    <form method="post" action="{% url 'approvals:decide' approval_id=approval.id %}" class="form">
+      {% csrf_token %}
+      <label class="field">
+        <span class="field__label">note (optional)</span>
+        <input type="text" name="note" class="input" maxlength="240" placeholder="why approve / why reject" />
+      </label>
+      <div class="form__row">
+        <button type="submit" name="action" value="approve" class="btn btn--primary">✓ approve &amp; run</button>
+        <button type="submit" name="action" value="reject" class="btn btn--ghost">✗ reject</button>
+      </div>
+      <p class="muted mono">4-eyes rule: requesters cannot approve their own request.</p>
+    </form>
+    {% else %}
+      <p class="card__body">
+        Decision: <span class="badge {% if approval.status == 'approved' %}badge--ok{% else %}badge--err{% endif %}">{{ approval.status }}</span>
+        {% if approval.decided_by %}by {{ approval.decided_by.username }}{% endif %}
+        {% if approval.decided_at %}at {{ approval.decided_at|date:'Y-m-d H:i' }}{% endif %}
+      </p>
+      {% if approval.decision_note %}
+      <p class="card__body"><em>{{ approval.decision_note }}</em></p>
+      {% endif %}
+    {% endif %}
+  </article>
+</section>
+{% endblock %}

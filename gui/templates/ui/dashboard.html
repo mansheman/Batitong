@@ -11,17 +11,18 @@
   </h1>
   <p class="hero__sub">
     {{ total_tools }} MCP tools wired up across Kali MCP and HexStrike-AI.
-    Plan a chain, or fire a single command.
+    Plan a chain, fire a single command, or chat with the planner.
   </p>
   <div class="hero__actions">
-    <a href="{% url 'mcp:catalog' %}" class="btn btn--primary">→ browse tool catalog</a>
+    <a href="{% url 'llm:new' %}" class="btn btn--primary">⌘ start chat</a>
+    <a href="{% url 'mcp:catalog' %}" class="btn btn--ghost">→ browse tool catalog</a>
     <a href="{% url 'engagements:list' %}" class="btn btn--ghost">▶ engagements</a>
   </div>
 </section>
 
 <section class="grid grid--3">
   <div class="card">
-    <span class="card__num">01 / 03</span>
+    <span class="card__num">01 / 04</span>
     <h2 class="card__title">Tool Catalog</h2>
     <p class="card__body">
       <strong class="metric">{{ total_tools }}</strong> tools registered.
@@ -31,7 +32,7 @@
   </div>
 
   <div class="card">
-    <span class="card__num">02 / 03</span>
+    <span class="card__num">02 / 04</span>
     <h2 class="card__title">Active Engagements</h2>
     <p class="card__body">
       <strong class="metric">{{ active_count }}</strong> running right now in this workspace.
@@ -40,7 +41,21 @@
   </div>
 
   <div class="card">
-    <span class="card__num">03 / 03</span>
+    <span class="card__num">03 / 04</span>
+    <h2 class="card__title">Pending Approvals</h2>
+    <p class="card__body">
+      <strong class="metric">{{ pending_approvals_count|default:0 }}</strong>
+      high-risk tool calls waiting for review.
+    </p>
+    {% if active_membership and active_membership.can_approve_high_risk %}
+      <a href="{% url 'approvals:list' %}" class="card__cta">open inbox →</a>
+    {% else %}
+      <span class="muted">Lead/Owner role required to review.</span>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <span class="card__num">04 / 04</span>
     <h2 class="card__title">MCP Providers</h2>
     <ul class="provider-list">
       {% for p in providers %}

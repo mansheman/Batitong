@@ -57,6 +57,9 @@ LOCAL_APPS = [
     "apps.targets",
     "apps.engagements",
     "apps.mcp",
+    "apps.credentials",
+    "apps.approvals",
+    "apps.llm",
     "apps.ui",
 ]
 
@@ -163,6 +166,7 @@ CELERY_TASK_QUEUES = {
 }
 CELERY_TASK_ROUTES = {
     "apps.engagements.tasks.run_tool_execution": {"queue": "heavy"},
+    "apps.llm.tasks.run_chat_turn": {"queue": "llm"},
 }
 
 # ---------------------------------------------------------------------------
@@ -204,6 +208,25 @@ GITHUB_MODELS_BASE_URL = env(
     "GITHUB_MODELS_BASE_URL",
     default="https://models.inference.ai.azure.com",
 )
+GITHUB_MODELS_DEFAULT_MODEL = env(
+    "GITHUB_MODELS_DEFAULT_MODEL",
+    default="gpt-4o-mini",
+)
+
+# ---------------------------------------------------------------------------
+# LLM router / chat
+# ---------------------------------------------------------------------------
+LLM_DEFAULT_PROVIDER = env("LLM_DEFAULT_PROVIDER", default="ollama")
+# 'full' (default) | 'hash' | 'off' — honored by apps.llm.tracing.record_trace.
+LLM_PROMPT_LOGGING = env("LLM_PROMPT_LOGGING", default="full")
+LLM_MAX_TOOL_ITERATIONS = env.int("LLM_MAX_TOOL_ITERATIONS", default=4)
+LLM_TOOL_OUTPUT_CHAR_LIMIT = env.int("LLM_TOOL_OUTPUT_CHAR_LIMIT", default=4000)
+
+# ---------------------------------------------------------------------------
+# Approval gate
+# ---------------------------------------------------------------------------
+APPROVAL_GATE_ENABLED = env.bool("APPROVAL_GATE_ENABLED", default=True)
+APPROVAL_TIMEOUT_MINUTES = env.int("APPROVAL_TIMEOUT_MINUTES", default=60)
 
 # ---------------------------------------------------------------------------
 # Logging

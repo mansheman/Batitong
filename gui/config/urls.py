@@ -16,6 +16,9 @@ urlpatterns = [
     path("targets/", include("apps.targets.urls")),
     path("engagements/", include("apps.engagements.urls")),
     path("tools/", include("apps.mcp.urls")),
+    path("chat/", include("apps.llm.urls")),
+    path("approvals/", include("apps.approvals.urls")),
+    path("credentials/", include("apps.credentials.urls")),
 ]
 
 if settings.DEBUG:

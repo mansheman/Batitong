@@ -6,11 +6,11 @@
 <section class="block">
   <header class="block__header">
     <h2 class="block__title">Settings</h2>
-    <span class="badge badge--mono">phase 1</span>
+    <span class="badge badge--mono">phase 2a</span>
   </header>
 
   <article class="card card--full">
-    <span class="card__num">01 / 03</span>
+    <span class="card__num">01 / 05</span>
     <h3 class="card__title">MCP providers</h3>
     <table class="table">
       <thead>
@@ -38,11 +38,51 @@
   </article>
 
   <article class="card card--full">
-    <span class="card__num">02 / 03</span>
+    <span class="card__num">02 / 05</span>
+    <h3 class="card__title">LLM router</h3>
+    <p class="card__body">
+      <span class="muted">Default provider:</span>
+      <span class="badge badge--mono">{{ default_provider }}</span>
+      <span class="muted">· Prompt logging:</span>
+      <span class="badge badge--mono">{{ prompt_logging_mode }}</span>
+      <span class="muted">· Approval gate:</span>
+      {% if approval_gate_enabled %}
+        <span class="badge badge--ok">enabled · {{ approval_timeout_minutes }}m timeout</span>
+      {% else %}
+        <span class="badge badge--err">disabled</span>
+      {% endif %}
+      {% if pending_approvals %}
+        <span class="badge badge--warn">{{ pending_approvals }} pending</span>
+      {% endif %}
+    </p>
+
+    {% if can_manage %}
+      <form method="post" class="form-grid">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="router" />
+        <label class="field field--inline">
+          <input type="checkbox" name="privacy_mode" value="1"
+            {% if workspace and workspace.privacy_mode %}checked{% endif %} />
+          <span>
+            <strong>Privacy mode</strong>
+            <span class="field__hint">Force this workspace to local Ollama only — disables every cloud LLM call.</span>
+          </span>
+        </label>
+        <div class="form-grid__actions">
+          <button type="submit" class="btn btn--primary">save router settings</button>
+        </div>
+      </form>
+    {% else %}
+      <p class="muted">Lead/Owner role required to change router settings.</p>
+    {% endif %}
+  </article>
+
+  <article class="card card--full">
+    <span class="card__num">03 / 05</span>
     <h3 class="card__title">Local LLM (Ollama)</h3>
     <p class="card__body">
       Endpoint <code class="code">{{ ollama_url }}</code>.
-      Models pulled at build time (Phase 2 will route prompts via the LLM router):
+      Models pulled at build time (the router selects one of these for new chats):
     </p>
     <ul class="chip-list">
       {% for m in ollama_models %}
@@ -54,23 +94,44 @@
   </article>
 
   <article class="card card--full">
-    <span class="card__num">03 / 03</span>
+    <span class="card__num">04 / 05</span>
     <h3 class="card__title">Cloud LLM (GitHub Models)</h3>
     <p class="card__body">
       Endpoint <code class="code">{{ github_models_url }}</code>.
-      Token state:
+      Env token state:
       {% if github_models_token_set %}
         <span class="badge badge--ok">configured</span>
       {% else %}
         <span class="badge badge--mono">not configured</span>
-        — set <code class="code">GITHUB_MODELS_TOKEN</code> in your <code class="code">.env</code>
       {% endif %}
     </p>
-    <p class="card__body">
-      <strong>Note:</strong> we use the <em>GitHub Models API</em>
-      (<code class="code">models.inference.ai.azure.com</code>), <strong>not</strong> the
-      Copilot editor plugin — Copilot's plugin licence forbids backend use.
+    <p class="muted">
+      Tokens are sourced workspace-first — add a <code class="code">github_models_token</code>
+      in <a href="{% url 'credentials:list' %}">Credentials</a> and the router will prefer it
+      over <code class="code">GITHUB_MODELS_TOKEN</code> in <code class="code">.env</code>.
+      We use the GitHub Models API (<code class="code">models.inference.ai.azure.com</code>),
+      <strong>not</strong> the Copilot editor plugin.
     </p>
+    <p class="muted">Available models (rate limits per GitHub Models docs):</p>
+    <ul class="chip-list">
+      {% for opt in github_models_options %}
+        <li class="chip">{{ opt.0 }}</li>
+      {% endfor %}
+    </ul>
+  </article>
+
+  <article class="card card--full">
+    <span class="card__num">05 / 05</span>
+    <h3 class="card__title">External API keys</h3>
+    <p class="card__body">
+      <strong class="metric">{{ creds_count|default:0 }}</strong>
+      credential(s) stored — Fernet-encrypted at rest, scoped to this workspace.
+    </p>
+    {% if can_manage %}
+      <a href="{% url 'credentials:list' %}" class="card__cta">manage credentials →</a>
+    {% else %}
+      <span class="muted">Lead/Owner role required to manage credentials.</span>
+    {% endif %}
   </article>
 </section>
 {% endblock %}

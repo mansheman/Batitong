@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}new chat{% endblock %}
+{% block crumb %}~/chat/new{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Start a new chat</h2>
+    <a href="{% url 'llm:list' %}" class="link link--mono">← all chats</a>
+  </header>
+
+  <form method="post" class="form form--card">
+    {% csrf_token %}
+
+    <label class="field">
+      <span class="field__label">title</span>
+      {{ form.title }}
+    </label>
+
+    <label class="field">
+      <span class="field__label">provider</span>
+      {{ form.provider_kind }}
+      {% if form.provider_kind.help_text %}
+        <span class="field__hint">{{ form.provider_kind.help_text }}</span>
+      {% endif %}
+    </label>
+
+    <label class="field">
+      <span class="field__label">model (optional)</span>
+      {{ form.model_name }}
+      <span class="field__hint">{{ form.model_name.help_text }}</span>
+    </label>
+
+    <details class="field">
+      <summary>known GitHub Models options</summary>
+      <ul class="chip-list">
+        {% for slug, label, hint in github_models_options %}
+          <li class="chip" title="{{ hint }}">{{ slug }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+
+    <label class="field">
+      <span class="field__label">extra system prompt (optional)</span>
+      {{ form.system_prompt }}
+    </label>
+
+    <button type="submit" class="btn btn--primary">▶ create chat</button>
+  </form>
+</section>
+{% endblock %}

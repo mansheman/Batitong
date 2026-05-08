@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}chat · {{ session.short_id }}{% endblock %}
+{% block crumb %}~/chat/{{ session.short_id }}{% endblock %}
+
+{% block topbar_right %}
+  <span class="badge badge--mono">provider: {{ session.provider_kind }}</span>
+  {% if session.model_name %}<span class="badge badge--mono">{{ session.model_name }}</span>{% endif %}
+  <span id="chat-status" class="badge {% if session.is_busy %}badge--live{% else %}badge--mono{% endif %}">
+    {% if session.is_busy %}running{% else %}idle{% endif %}
+  </span>
+{% endblock %}
+
+{% block content %}
+<section class="block chat">
+  <header class="block__header">
+    <h2 class="block__title">{{ session.display_title }}</h2>
+    <span class="muted mono">tools available: {{ available_tools }}</span>
+  </header>
+
+  <div id="chat-log" class="chat__log" data-session-id="{{ session.id }}">
+    {% for m in history %}
+      {% include "llm/_message.html" with m=m %}
+    {% empty %}
+    <div class="chat__msg chat__msg--system">
+      <p>System ready. Type a message below to start planning.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <form method="post" action="{% url 'llm:post' session_id=session.id %}" class="chat__compose">
+    {% csrf_token %}
+    <textarea
+      name="content"
+      class="input input--mono chat__textarea"
+      rows="3"
+      placeholder="Plan a recon scan against acme.corp …"
+      {% if session.is_busy %}disabled{% endif %}
+      required
+    ></textarea>
+    <div class="chat__compose__row">
+      <button type="submit" class="btn btn--primary" {% if session.is_busy %}disabled{% endif %}>▶ send</button>
+      <span class="muted mono">enter sends · shift+enter newline · {{ session.provider_kind }}/{{ session.model_name|default:"default" }}</span>
+    </div>
+  </form>
+
+  {% if session.is_busy %}
+  <p class="muted mono">Chat is currently running a turn — wait for the assistant to reply.</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  const log = document.getElementById('chat-log');
+  if (!log) return;
+  const sessionId = log.dataset.sessionId;
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const ws = new WebSocket(proto + '//' + location.host + '/ws/chat/' + sessionId + '/');
+
+  ws.onmessage = function(ev) {
+    let payload;
+    try { payload = JSON.parse(ev.data); } catch (e) { return; }
+    if (payload.event === 'chat.message') {
+      const m = payload.message || {};
+      const wrap = document.createElement('div');
+      wrap.className = 'chat__msg chat__msg--' + (m.role || 'system');
+      const head = document.createElement('div');
+      head.className = 'chat__msg__head';
+      head.textContent = m.role + (m.tool_name ? (' · ' + m.tool_name) : '');
+      const body = document.createElement('pre');
+      body.className = 'chat__msg__body';
+      body.textContent = m.content || '';
+      wrap.appendChild(head);
+      wrap.appendChild(body);
+      log.appendChild(wrap);
+      log.scrollTop = log.scrollHeight;
+    } else if (payload.event === 'chat.busy') {
+      const status = document.getElementById('chat-status');
+      if (status) {
+        status.textContent = payload.busy ? 'running' : 'idle';
+        status.className = 'badge ' + (payload.busy ? 'badge--live' : 'badge--mono');
+      }
+    }
+  };
+})();
+</script>
+{% endblock %}
