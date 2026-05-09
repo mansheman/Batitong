@@ -94,6 +94,26 @@ CREDENTIAL_SPECS: tuple[CredentialSpec, ...] = (
             "when this workspace is not in privacy mode."
         ),
     ),
+    CredentialSpec(
+        key="openrouter_api_key",
+        label="OpenRouter API key (LLM)",
+        provider="openrouter.ai",
+        env_var="OPENROUTER_API_KEY",
+        hint=(
+            "Free-tier key from https://openrouter.ai/keys — pairs with the "
+            "OpenRouter dropdown in chat new."
+        ),
+    ),
+    CredentialSpec(
+        key="groq_api_key",
+        label="GROQ API key (LLM)",
+        provider="groq.com",
+        env_var="GROQ_API_KEY",
+        hint=(
+            "Free-tier key from https://console.groq.com/keys — pairs with the "
+            "GROQ dropdown in chat new."
+        ),
+    ),
 )
 
 

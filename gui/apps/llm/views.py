@@ -10,6 +10,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from apps.mcp.models import MCPTool
 
 from .adapters.github_models import GITHUB_MODELS_OPTIONS
+from .adapters.groq import GROQ_OPTIONS
+from .adapters.openrouter import OPENROUTER_OPTIONS
 from .forms import NewChatForm
 from .models import ChatMessage, ChatSession
 from .prompts import build_system_prompt
@@ -62,6 +64,8 @@ def chat_new(request: HttpRequest) -> HttpResponse:
         {
             "form": form,
             "github_models_options": GITHUB_MODELS_OPTIONS,
+            "openrouter_options": OPENROUTER_OPTIONS,
+            "groq_options": GROQ_OPTIONS,
         },
     )
 

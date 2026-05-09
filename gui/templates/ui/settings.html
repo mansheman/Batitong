@@ -6,11 +6,11 @@
 <section class="block">
   <header class="block__header">
     <h2 class="block__title">Settings</h2>
-    <span class="badge badge--mono">phase 2a</span>
+    <span class="badge badge--mono">phase 2a.1</span>
   </header>
 
   <article class="card card--full">
-    <span class="card__num">01 / 05</span>
+    <span class="card__num">01 / 07</span>
     <h3 class="card__title">MCP providers</h3>
     <table class="table">
       <thead>
@@ -38,7 +38,7 @@
   </article>
 
   <article class="card card--full">
-    <span class="card__num">02 / 05</span>
+    <span class="card__num">02 / 07</span>
     <h3 class="card__title">LLM router</h3>
     <p class="card__body">
       <span class="muted">Default provider:</span>
@@ -54,6 +54,18 @@
       {% if pending_approvals %}
         <span class="badge badge--warn">{{ pending_approvals }} pending</span>
       {% endif %}
+    </p>
+    <p class="card__body">
+      <span class="muted">Fallback chain:</span>
+      <span class="chip-list chip-list--inline">
+        {% for kind in fallback_chain %}
+          <span class="chip">{{ kind }}</span>
+        {% endfor %}
+      </span>
+      <span class="field__hint">
+        Tried in order until one provider's <code class="code">health()</code> call succeeds.
+        Privacy mode strips cloud providers from the chain.
+      </span>
     </p>
 
     {% if can_manage %}
@@ -78,7 +90,7 @@
   </article>
 
   <article class="card card--full">
-    <span class="card__num">03 / 05</span>
+    <span class="card__num">03 / 07</span>
     <h3 class="card__title">Local LLM (Ollama)</h3>
     <p class="card__body">
       Endpoint <code class="code">{{ ollama_url }}</code>.
@@ -94,7 +106,7 @@
   </article>
 
   <article class="card card--full">
-    <span class="card__num">04 / 05</span>
+    <span class="card__num">04 / 07</span>
     <h3 class="card__title">Cloud LLM (GitHub Models)</h3>
     <p class="card__body">
       Endpoint <code class="code">{{ github_models_url }}</code>.
@@ -121,7 +133,57 @@
   </article>
 
   <article class="card card--full">
-    <span class="card__num">05 / 05</span>
+    <span class="card__num">05 / 07</span>
+    <h3 class="card__title">Cloud LLM (OpenRouter — free-tier)</h3>
+    <p class="card__body">
+      Endpoint <code class="code">{{ openrouter_url }}</code>.
+      Env key state:
+      {% if openrouter_token_set %}
+        <span class="badge badge--ok">configured</span>
+      {% else %}
+        <span class="badge badge--mono">not configured</span>
+      {% endif %}
+    </p>
+    <p class="muted">
+      Tokens are sourced workspace-first — add an <code class="code">openrouter_api_key</code>
+      in <a href="{% url 'credentials:list' %}">Credentials</a> and the router will prefer it
+      over <code class="code">OPENROUTER_API_KEY</code> in <code class="code">.env</code>.
+    </p>
+    <p class="muted">Free-tier slugs (subject to OpenRouter rate limits):</p>
+    <ul class="chip-list">
+      {% for opt in openrouter_options %}
+        <li class="chip">{{ opt.0 }}</li>
+      {% endfor %}
+    </ul>
+  </article>
+
+  <article class="card card--full">
+    <span class="card__num">06 / 07</span>
+    <h3 class="card__title">Cloud LLM (GROQ — free-tier)</h3>
+    <p class="card__body">
+      Endpoint <code class="code">{{ groq_url }}</code>.
+      Env key state:
+      {% if groq_token_set %}
+        <span class="badge badge--ok">configured</span>
+      {% else %}
+        <span class="badge badge--mono">not configured</span>
+      {% endif %}
+    </p>
+    <p class="muted">
+      Tokens are sourced workspace-first — add a <code class="code">groq_api_key</code>
+      in <a href="{% url 'credentials:list' %}">Credentials</a> and the router will prefer it
+      over <code class="code">GROQ_API_KEY</code> in <code class="code">.env</code>.
+    </p>
+    <p class="muted">Available models (free-tier rate limits per GROQ docs):</p>
+    <ul class="chip-list">
+      {% for opt in groq_options %}
+        <li class="chip">{{ opt.0 }}</li>
+      {% endfor %}
+    </ul>
+  </article>
+
+  <article class="card card--full">
+    <span class="card__num">07 / 07</span>
     <h3 class="card__title">External API keys</h3>
     <p class="card__body">
       <strong class="metric">{{ creds_count|default:0 }}</strong>
