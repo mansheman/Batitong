@@ -67,6 +67,11 @@ class MCPTool(models.Model):
         HIGH = "high", _("High")
         CRITICAL = "crit", _("Critical")
 
+    class RiskSource(models.TextChoices):
+        ANNOTATION = "annotation", _("Provider annotation")
+        HEURISTIC = "heuristic", _("Name heuristic")
+        MANUAL = "manual", _("Manual override")
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     provider = models.ForeignKey(
         MCPProvider,
@@ -83,7 +88,17 @@ class MCPTool(models.Model):
     risk_level = models.CharField(
         max_length=8,
         choices=RiskLevel.choices,
-        default=RiskLevel.LOW,
+        default=RiskLevel.MEDIUM,
+        help_text=(
+            "Default to 'med' so unknown tools require Lead/Owner approval. "
+            "Lower the level only after a manual review."
+        ),
+    )
+    risk_source = models.CharField(
+        max_length=12,
+        choices=RiskSource.choices,
+        default=RiskSource.HEURISTIC,
+        help_text="How the current ``risk_level`` was determined.",
     )
     schema = models.JSONField(default=dict, help_text="JSON schema of input arguments")
     is_available = models.BooleanField(default=True)
@@ -126,3 +141,40 @@ class MCPTool(models.Model):
             return []
         req = self.schema.get("required")
         return list(req) if isinstance(req, list) else []
+
+
+class MCPToolRiskOverride(models.Model):
+    """A workspace-scoped manual override for a tool's risk level.
+
+    Lead / Owner roles can lower or raise the risk classification for a
+    specific tool inside their workspace without mutating the global
+    :class:`MCPTool.risk_level` (which is shared across workspaces).
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        "accounts.Workspace",
+        on_delete=models.CASCADE,
+        related_name="tool_risk_overrides",
+    )
+    tool = models.ForeignKey(
+        MCPTool,
+        on_delete=models.CASCADE,
+        related_name="risk_overrides",
+    )
+    risk_level = models.CharField(max_length=8, choices=MCPTool.RiskLevel.choices)
+    reason = models.CharField(max_length=240, blank=True, default="")
+    decided_by = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.PROTECT,
+        related_name="tool_risk_overrides",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        unique_together = [("workspace", "tool")]
+
+    def __str__(self) -> str:
+        return f"override:{self.workspace_id}:{self.tool.name}={self.risk_level}"

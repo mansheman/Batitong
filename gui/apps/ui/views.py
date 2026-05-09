@@ -14,6 +14,8 @@ from apps.approvals.models import ApprovalRequest
 from apps.credentials.models import WorkspaceCredential
 from apps.engagements.models import Engagement
 from apps.llm.adapters.github_models import GITHUB_MODELS_OPTIONS
+from apps.llm.adapters.groq import GROQ_OPTIONS
+from apps.llm.adapters.openrouter import OPENROUTER_OPTIONS
 from apps.mcp.models import MCPProvider, MCPTool
 from apps.mcp.services import format_synced_at
 
@@ -102,6 +104,14 @@ def settings_view(request: HttpRequest) -> HttpResponse:
         ).count()
         creds_count = WorkspaceCredential.objects.filter(workspace=workspace).count()
 
+    fallback_chain = (
+        list(getattr(workspace, "llm_fallback_chain", None) or []) if workspace is not None else []
+    )
+    if not fallback_chain:
+        fallback_chain = list(
+            getattr(settings, "LLM_DEFAULT_FALLBACK_CHAIN", ["ollama", "github_models"])
+        )
+
     return render(
         request,
         "ui/settings.html",
@@ -117,7 +127,14 @@ def settings_view(request: HttpRequest) -> HttpResponse:
             "github_models_url": settings.GITHUB_MODELS_BASE_URL,
             "github_models_token_set": bool(settings.GITHUB_MODELS_TOKEN),
             "github_models_options": GITHUB_MODELS_OPTIONS,
+            "openrouter_url": settings.OPENROUTER_BASE_URL,
+            "openrouter_token_set": bool(settings.OPENROUTER_API_KEY),
+            "openrouter_options": OPENROUTER_OPTIONS,
+            "groq_url": settings.GROQ_BASE_URL,
+            "groq_token_set": bool(settings.GROQ_API_KEY),
+            "groq_options": GROQ_OPTIONS,
             "default_provider": getattr(settings, "LLM_DEFAULT_PROVIDER", "ollama"),
+            "fallback_chain": fallback_chain,
             "prompt_logging_mode": getattr(settings, "LLM_PROMPT_LOGGING", "full"),
             "approval_gate_enabled": getattr(settings, "APPROVAL_GATE_ENABLED", True),
             "approval_timeout_minutes": getattr(settings, "APPROVAL_TIMEOUT_MINUTES", 60),

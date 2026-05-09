@@ -7,6 +7,7 @@ from apps.mcp.clients.base import (
     ToolDefinition,
     ToolResult,
     guess_risk_level,
+    parse_risk_from_description,
     parse_tactic_from_description,
 )
 from apps.mcp.clients.hexstrike import HexStrikeClient
@@ -39,12 +40,29 @@ def test_parse_tactic_from_description_handles_attack_tag():
         ("msfvenom_generate", "crit"),
         ("hydra_bruteforce", "high"),
         ("nuclei_scan", "med"),
-        ("nmap_scan", "low"),
-        ("list_installed_tools", "low"),
+        ("nmap_scan", "med"),
+        ("list_installed_tools", "med"),
+        ("brand_new_unknown_tool", "med"),
     ],
 )
 def test_guess_risk_level(name, expected):
     assert guess_risk_level(name) == expected
+
+
+@pytest.mark.parametrize(
+    "desc,expected",
+    [
+        ("[TA0007 high] Discovery via nmap", "high"),
+        ("[TA0040 critical] Impact module", "crit"),
+        ("[TA0001 medium] Initial access scan", "med"),
+        ("[Utility low] List installed tools", "low"),
+        ("[TA0007 Discovery] no risk token", ""),
+        ("plain description with no annotation", ""),
+        ("", ""),
+    ],
+)
+def test_parse_risk_from_description(desc, expected):
+    assert parse_risk_from_description(desc) == expected
 
 
 def test_result_to_tool_result_concatenates_text_chunks():

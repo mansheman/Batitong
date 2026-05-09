@@ -201,6 +201,7 @@ def run_chat_turn(self, session_id: str) -> dict[str, Any]:
                     completion_tokens=0,
                     latency_ms=0,
                     error=str(exc)[:240],
+                    fallback_reason=decision.fallback_reason,
                 )
                 return {"ok": False, "error": str(exc)}
 

@@ -147,6 +147,15 @@ class LLMTrace(models.Model):
     completion_tokens = models.PositiveIntegerField(default=0)
     latency_ms = models.PositiveIntegerField(default=0)
     error = models.CharField(max_length=240, blank=True, default="")
+    fallback_reason = models.CharField(
+        max_length=240,
+        blank=True,
+        default="",
+        help_text=(
+            "Reason the router downgraded or fell back from the requested "
+            "provider. Empty when the requested provider was used as-is."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

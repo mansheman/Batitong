@@ -37,6 +37,15 @@ class Workspace(models.Model):
         default=False,
         help_text="Force LLM routing to local providers only (no cloud).",
     )
+    llm_fallback_chain = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            "Ordered list of provider kinds the LLM router falls back to when "
+            "the requested provider is unhealthy. The default is filled in by "
+            "``apps.llm.router`` from ``LLM_DEFAULT_FALLBACK_CHAIN`` settings."
+        ),
+    )
 
     class Meta:
         ordering = ["name"]

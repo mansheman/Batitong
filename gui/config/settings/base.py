@@ -212,6 +212,24 @@ GITHUB_MODELS_DEFAULT_MODEL = env(
     "GITHUB_MODELS_DEFAULT_MODEL",
     default="gpt-4o-mini",
 )
+OPENROUTER_API_KEY = env("OPENROUTER_API_KEY", default="")
+OPENROUTER_BASE_URL = env(
+    "OPENROUTER_BASE_URL",
+    default="https://openrouter.ai/api/v1",
+)
+OPENROUTER_DEFAULT_MODEL = env(
+    "OPENROUTER_DEFAULT_MODEL",
+    default="meta-llama/llama-3.2-3b-instruct:free",
+)
+GROQ_API_KEY = env("GROQ_API_KEY", default="")
+GROQ_BASE_URL = env(
+    "GROQ_BASE_URL",
+    default="https://api.groq.com/openai/v1",
+)
+GROQ_DEFAULT_MODEL = env(
+    "GROQ_DEFAULT_MODEL",
+    default="llama-3.1-8b-instant",
+)
 
 # ---------------------------------------------------------------------------
 # LLM router / chat
@@ -221,6 +239,14 @@ LLM_DEFAULT_PROVIDER = env("LLM_DEFAULT_PROVIDER", default="ollama")
 LLM_PROMPT_LOGGING = env("LLM_PROMPT_LOGGING", default="full")
 LLM_MAX_TOOL_ITERATIONS = env.int("LLM_MAX_TOOL_ITERATIONS", default=4)
 LLM_TOOL_OUTPUT_CHAR_LIMIT = env.int("LLM_TOOL_OUTPUT_CHAR_LIMIT", default=4000)
+# Fallback chain probed in order when the requested provider is unhealthy.
+# ``apps.llm.router`` strips cloud providers when ``workspace.privacy_mode``.
+LLM_DEFAULT_FALLBACK_CHAIN = env.list(
+    "LLM_DEFAULT_FALLBACK_CHAIN",
+    default=["ollama", "github_models", "openrouter", "groq"],
+)
+# Probe timeout in seconds for adapter ``health()`` calls during routing.
+LLM_HEALTH_PROBE_TIMEOUT = env.float("LLM_HEALTH_PROBE_TIMEOUT", default=4.0)
 
 # ---------------------------------------------------------------------------
 # Approval gate

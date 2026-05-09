@@ -10,7 +10,10 @@ from .adapters.github_models import GITHUB_MODELS_OPTIONS
 PROVIDER_CHOICES = (
     ("ollama", "Ollama (local)"),
     ("github_models", "GitHub Models (cloud)"),
+    ("openrouter", "OpenRouter (cloud, free-tier)"),
+    ("groq", "GROQ (cloud, free-tier)"),
 )
+LOCAL_PROVIDER_CHOICES = (("ollama", "Ollama (local)"),)
 
 
 class NewChatForm(forms.Form):
@@ -34,8 +37,9 @@ class NewChatForm(forms.Form):
             }
         ),
         help_text=(
-            "For GitHub Models, pick one of: gpt-4o-mini / Phi-3.5-MoE-instruct / "
-            "Llama-3.3-70B-Instruct."
+            "GitHub Models: gpt-4o-mini / Phi-3.5-MoE-instruct / Llama-3.3-70B-Instruct. "
+            "OpenRouter: see free-tier slugs (gemma-2-9b-it:free, …). "
+            "GROQ: llama-3.1-8b-instant, llama-3.3-70b-versatile, mixtral-8x7b-32768."
         ),
     )
     system_prompt = forms.CharField(
@@ -49,8 +53,8 @@ class NewChatForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.workspace = workspace
         if workspace is not None and getattr(workspace, "privacy_mode", False):
-            # Force Ollama when privacy mode is on; visually disable cloud option.
-            self.fields["provider_kind"].choices = (("ollama", "Ollama (local)"),)
+            # Force Ollama when privacy mode is on; visually disable cloud options.
+            self.fields["provider_kind"].choices = LOCAL_PROVIDER_CHOICES
             self.fields["provider_kind"].initial = "ollama"
             self.fields["provider_kind"].help_text = (
                 "Workspace privacy mode is on — cloud providers are disabled."

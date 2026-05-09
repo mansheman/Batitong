@@ -29,6 +29,10 @@ class ToolResult:
     structured: dict[str, Any] | None = None
 
 
+_RISK_TOKENS = {"low", "med", "medium", "high", "crit", "critical"}
+_RISK_NORMALIZE = {"medium": "med", "critical": "crit"}
+
+
 def parse_tactic_from_description(desc: str) -> str:
     """Extract MITRE ATT&CK tactic id from a tool docstring like ``[TA0043 ...]``."""
     desc = desc or ""
@@ -48,6 +52,28 @@ def parse_tactic_from_description(desc: str) -> str:
     if head.lower().startswith("utility"):
         return "util"
     return "unknown"
+
+
+def parse_risk_from_description(desc: str) -> str:
+    """Extract a risk level token from the leading ``[TA0043 high ...]`` annotation.
+
+    Returns one of ``low``, ``med``, ``high``, ``crit`` if the provider tagged
+    the tool, or ``""`` to signal "no annotation found" so the caller can fall
+    back to a heuristic.
+    """
+    desc = desc or ""
+    head = desc.strip()
+    if not head.startswith("["):
+        return ""
+    end = head.find("]")
+    if end == -1:
+        return ""
+    parts = head[1:end].strip().split()
+    for part in parts:
+        token = part.lower().strip(",;")
+        if token in _RISK_TOKENS:
+            return _RISK_NORMALIZE.get(token, token)
+    return ""
 
 
 def guess_risk_level(tool_name: str) -> str:
@@ -97,4 +123,8 @@ def guess_risk_level(tool_name: str) -> str:
         return "high"
     if name in medium:
         return "med"
-    return "low"
+    # Unknown tools default to ``med`` so they hit the approval gate by default.
+    # Operators with the explicit allow-list (above) bypass the gate; everything
+    # else gets a human review until a Lead/Owner overrides the level via the
+    # admin or per-workspace ``MCPToolRiskOverride``.
+    return "med"

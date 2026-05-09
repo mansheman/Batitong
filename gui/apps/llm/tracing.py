@@ -46,6 +46,7 @@ def record_trace(
     completion_tokens: int,
     latency_ms: int,
     error: str = "",
+    fallback_reason: str = "",
 ) -> LLMTrace | None:
     """Write a trace row honoring the workspace privacy mode."""
     mode_setting = (getattr(settings, "LLM_PROMPT_LOGGING", "full") or "full").lower()
@@ -77,6 +78,7 @@ def record_trace(
         completion_tokens=completion_tokens,
         latency_ms=latency_ms,
         error=(error or "")[:240],
+        fallback_reason=(fallback_reason or "")[:240],
     )
 
 

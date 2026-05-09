@@ -11,7 +11,12 @@ from typing import Any
 from django.utils import timezone
 
 from .clients import HexStrikeClient, KaliMCPClient
-from .clients.base import ToolDefinition, guess_risk_level, parse_tactic_from_description
+from .clients.base import (
+    ToolDefinition,
+    guess_risk_level,
+    parse_risk_from_description,
+    parse_tactic_from_description,
+)
 from .models import MCPProvider, MCPTool
 
 logger = logging.getLogger(__name__)
@@ -129,6 +134,22 @@ def _sync_hexstrike_provider(provider: MCPProvider) -> SyncReport:
         )
 
 
+def _resolve_risk(name: str, description: str) -> tuple[str, str]:
+    """Return ``(risk_level, source)`` for a tool definition.
+
+    Annotation parsing wins over the name heuristic so the provider can author
+    risk in the docstring (e.g. ``[TA0007 high]``) and avoid being demoted to
+    ``low`` by an unknown tool name.
+    """
+    annotated = parse_risk_from_description(description)
+    if annotated and annotated in MCPTool.RiskLevel.values:
+        return annotated, MCPTool.RiskSource.ANNOTATION
+    risk = guess_risk_level(name)
+    if risk not in MCPTool.RiskLevel.values:
+        risk = MCPTool.RiskLevel.MEDIUM
+    return risk, MCPTool.RiskSource.HEURISTIC
+
+
 def _upsert_tools(
     provider: MCPProvider,
     defs: list[ToolDefinition],
@@ -140,18 +161,25 @@ def _upsert_tools(
     for d in defs:
         seen.add(d.name)
         tactic = parse_tactic_from_description(d.description)
-        risk = guess_risk_level(d.name)
+        risk, risk_source = _resolve_risk(d.name, d.description)
+
+        existing = MCPTool.objects.filter(provider=provider, name=d.name).first()
+        defaults: dict[str, Any] = {
+            "description": d.description,
+            "tactic": tactic if tactic in MCPTool.Tactic.values else MCPTool.Tactic.UNKNOWN,
+            "schema": d.schema,
+            "is_available": True,
+        }
+        # Preserve manual overrides — Lead/Owner who set ``risk_source=manual``
+        # via the admin shouldn't be silently overwritten by the next sync.
+        if existing is None or existing.risk_source != MCPTool.RiskSource.MANUAL:
+            defaults["risk_level"] = risk
+            defaults["risk_source"] = risk_source
 
         obj, was_created = MCPTool.objects.update_or_create(
             provider=provider,
             name=d.name,
-            defaults={
-                "description": d.description,
-                "tactic": tactic if tactic in MCPTool.Tactic.values else MCPTool.Tactic.UNKNOWN,
-                "risk_level": risk if risk in MCPTool.RiskLevel.values else MCPTool.RiskLevel.LOW,
-                "schema": d.schema,
-                "is_available": True,
-            },
+            defaults=defaults,
         )
         if was_created:
             created += 1

@@ -40,6 +40,24 @@
       </ul>
     </details>
 
+    <details class="field">
+      <summary>known OpenRouter options (free-tier)</summary>
+      <ul class="chip-list">
+        {% for slug, label, hint in openrouter_options %}
+          <li class="chip" title="{{ hint }}">{{ slug }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+
+    <details class="field">
+      <summary>known GROQ options</summary>
+      <ul class="chip-list">
+        {% for slug, label, hint in groq_options %}
+          <li class="chip" title="{{ hint }}">{{ slug }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+
     <label class="field">
       <span class="field__label">extra system prompt (optional)</span>
       {{ form.system_prompt }}
