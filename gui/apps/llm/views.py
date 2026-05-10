@@ -45,13 +45,30 @@ def chat_new(request: HttpRequest) -> HttpResponse:
         form = NewChatForm(request.POST, workspace=workspace)
         if form.is_valid():
             data = form.cleaned_data
+            playbook = data.get("anchored_playbook")
+            target = data.get("anchored_target")
+            allowed_tool_names: list[str] = []
+            if playbook is not None:
+                allowed_tool_names = sorted(
+                    {
+                        f"{tool.provider.kind}:{tool.name}"
+                        for tool in playbook.technique.tools.select_related("provider").all()
+                    }
+                )
             session = ChatSession.objects.create(
                 workspace=workspace,
                 created_by=request.user,
                 title=data.get("title") or "",
                 provider_kind=data.get("provider_kind") or "ollama",
                 model_name=data.get("model_name") or "",
-                system_prompt=build_system_prompt(data.get("system_prompt") or ""),
+                system_prompt=build_system_prompt(
+                    data.get("system_prompt") or "",
+                    playbook=playbook,
+                    target=target,
+                    allowed_tool_names=allowed_tool_names,
+                ),
+                anchored_playbook=playbook,
+                anchored_target=target,
             )
             messages.success(request, "Chat created.")
             return redirect("llm:detail", session_id=session.id)

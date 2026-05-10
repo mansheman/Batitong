@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}new playbook{% endblock %}
+{% block crumb %}~/playbooks/new{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">New playbook</h2>
+    <a class="link link--mono" href="{% url 'playbooks:list' %}">← all playbooks</a>
+  </header>
+
+  <form method="post" class="form form--card">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <label class="field">
+      <span class="field__label">name</span>
+      {{ form.name }}
+      {% if form.name.errors %}<span class="field__error">{{ form.name.errors|join:', ' }}</span>{% endif %}
+    </label>
+    <label class="field">
+      <span class="field__label">slug (optional — derived from name)</span>
+      {{ form.slug }}
+      {% if form.slug.errors %}<span class="field__error">{{ form.slug.errors|join:', ' }}</span>{% endif %}
+    </label>
+    <label class="field">
+      <span class="field__label">description</span>
+      {{ form.description }}
+    </label>
+    <label class="field">
+      <span class="field__label">MITRE technique</span>
+      {{ form.technique }}
+      {% if form.technique.errors %}<span class="field__error">{{ form.technique.errors|join:', ' }}</span>{% endif %}
+    </label>
+    <div class="grid grid--3">
+      <label class="field">
+        <span class="field__label">objective</span>
+        {{ form.objective }}
+      </label>
+      <label class="field">
+        <span class="field__label">risk envelope</span>
+        {{ form.risk_envelope }}
+        <span class="field__hint">{{ form.risk_envelope.help_text }}</span>
+      </label>
+      <label class="field">
+        <span class="field__label">on step failure</span>
+        {{ form.on_step_failure }}
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn--primary">create + add steps</button>
+  </form>
+</section>
+{% endblock %}

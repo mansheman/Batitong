@@ -174,7 +174,14 @@ def run_chat_turn(self, session_id: str) -> dict[str, Any]:
             session.save(update_fields=["provider_kind", "model_name", "updated_at"])
 
         adapter = decision.adapter
-        tools_qs = list(MCPTool.objects.filter(is_available=True).select_related("provider"))
+        tool_qs = MCPTool.objects.filter(is_available=True).select_related("provider")
+        if session.anchored_playbook_id is not None:
+            playbook = session.anchored_playbook
+            anchored_tool_ids = set(playbook.technique.tools.values_list("id", flat=True))
+            anchored_tool_ids.update(playbook.steps.values_list("tool_id", flat=True))
+            if anchored_tool_ids:
+                tool_qs = tool_qs.filter(id__in=anchored_tool_ids)
+        tools_qs = list(tool_qs)
         tool_specs, tool_index = build_tool_specs(tools_qs)
 
         from .tracing import record_trace

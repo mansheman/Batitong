@@ -35,6 +35,22 @@ class ChatSession(models.Model):
     model_name = models.CharField(max_length=120, default="")
     system_prompt = models.TextField(blank=True, default="")
     is_busy = models.BooleanField(default=False)
+    anchored_playbook = models.ForeignKey(
+        "playbooks.Playbook",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="anchored_chat_sessions",
+        help_text="When set, the chat is anchored to this playbook's technique + tool list.",
+    )
+    anchored_target = models.ForeignKey(
+        "targets.Target",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="anchored_chat_sessions",
+        help_text="Target referenced by the system prompt when ``anchored_playbook`` is set.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

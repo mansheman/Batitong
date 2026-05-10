@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load batitong %}
+{% block title %}run {{ run.short_id }} · {{ playbook.name }}{% endblock %}
+{% block crumb %}~/playbooks/{{ playbook.slug }}/run/{{ run.short_id }}{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <div>
+      <h2 class="block__title">Run {{ run.short_id }}</h2>
+      <div class="block__meta">
+        <span class="mono">{{ playbook.slug }}</span>
+        <span class="badge badge--mono">{{ playbook.technique.technique_id }}</span>
+        <span class="status {{ run.status|status_class }}">{{ run.get_status_display }}</span>
+        <span class="muted">target: <span class="mono">{{ run.target.value }}</span></span>
+        <span class="muted">started by {{ run.started_by }} · {{ run.created_at|date:'Y-m-d H:i:s' }}</span>
+      </div>
+    </div>
+    <div class="block__actions">
+      <a class="link link--mono" href="{% url 'engagements:detail' engagement_id=run.engagement_id %}">▶ engagement live log</a>
+      {% if run.status == 'queued' or run.status == 'running' or run.status == 'awaiting' %}
+      <form action="{% url 'playbooks:cancel-run' slug=playbook.slug run_id=run.id %}" method="post" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--danger btn--sm">cancel</button>
+      </form>
+      {% endif %}
+    </div>
+  </header>
+
+  <article class="card card--full">
+    <span class="card__num">timeline</span>
+    <h3 class="card__title">Steps</h3>
+    <ol class="step-list">
+      {% for step in steps %}
+      <li class="step step--{{ step.status }}">
+        <header class="step__head">
+          <span class="step__order">{{ step.order|stringformat:"02d" }}</span>
+          <span class="step__title">{{ step.template_step.title|default:step.template_step.tool.name }}</span>
+          <span class="badge badge--mono">{{ step.template_step.tool.provider.kind }}:{{ step.template_step.tool.name }}</span>
+          <span class="status status--mini {{ step.status|status_class }}">{{ step.get_status_display }}</span>
+        </header>
+        {% if step.template_step.rationale %}<p class="step__rationale">{{ step.template_step.rationale }}</p>{% endif %}
+        {% if step.rendered_args %}
+        <details>
+          <summary class="link link--mono">rendered args</summary>
+          <pre class="output mono">{{ step.rendered_args|pretty_json }}</pre>
+        </details>
+        {% endif %}
+        {% if step.execution %}
+        <details>
+          <summary class="link link--mono">tool output</summary>
+          <pre class="output">{{ step.execution.output|default:'(no output yet)' }}</pre>
+          {% if step.execution.error_message %}
+            <pre class="output output--err">{{ step.execution.error_message }}</pre>
+          {% endif %}
+        </details>
+        {% endif %}
+        {% if step.error_message %}<p class="field__error mono">{{ step.error_message }}</p>{% endif %}
+      </li>
+      {% empty %}
+      <li class="muted">No steps yet.</li>
+      {% endfor %}
+    </ol>
+  </article>
+</section>
+{% endblock %}

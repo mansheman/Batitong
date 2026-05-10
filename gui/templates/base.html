@@ -34,6 +34,12 @@
         <a href="{% url 'engagements:list' %}" class="nav__item {% if request.resolver_match.namespace == 'engagements' %}is-active{% endif %}">
           <span class="nav__icon">▶</span><span class="nav__label">Engagements</span>
         </a>
+        <a href="{% url 'playbooks:list' %}" class="nav__item {% if request.resolver_match.namespace == 'playbooks' %}is-active{% endif %}">
+          <span class="nav__icon">▦</span><span class="nav__label">Playbooks</span>
+        </a>
+        <a href="{% url 'mitre:matrix' %}" class="nav__item {% if request.resolver_match.namespace == 'mitre' %}is-active{% endif %}">
+          <span class="nav__icon">⊞</span><span class="nav__label">MITRE</span>
+        </a>
         <a href="{% url 'mcp:catalog' %}" class="nav__item {% if request.resolver_match.namespace == 'mcp' %}is-active{% endif %}">
           <span class="nav__icon">⚙</span><span class="nav__label">Tool Catalog</span>
         </a>

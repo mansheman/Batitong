@@ -73,6 +73,21 @@ print('providers ensured')
 PY
 }
 
+seed_mitre_corpus() {
+  echo "[entrypoint] seeding MITRE ATT&CK corpus (idempotent)…"
+  python manage.py seed_mitre --quiet || echo "[entrypoint] seed_mitre warning"
+}
+
+sync_tool_technique_map_if_present() {
+  echo "[entrypoint] syncing tool↔technique map (idempotent)…"
+  python manage.py sync_tool_technique_map --quiet || echo "[entrypoint] sync_tool_technique_map warning"
+}
+
+seed_builtin_playbooks() {
+  echo "[entrypoint] seeding built-in playbooks (idempotent)…"
+  python manage.py seed_playbooks --quiet || echo "[entrypoint] seed_playbooks warning"
+}
+
 case "${1:-web}" in
   web)
     wait_for_postgres
@@ -80,6 +95,9 @@ case "${1:-web}" in
     create_superuser_if_missing || true
     bootstrap_workspace_if_missing || true
     bootstrap_mcp_providers_if_missing || true
+    seed_mitre_corpus || true
+    sync_tool_technique_map_if_present || true
+    seed_builtin_playbooks || true
     python manage.py collectstatic --noinput >/dev/null 2>&1 || true
     echo "[entrypoint] starting daphne ASGI server on 0.0.0.0:8000"
     exec python -m daphne -b 0.0.0.0 -p 8000 config.asgi:application

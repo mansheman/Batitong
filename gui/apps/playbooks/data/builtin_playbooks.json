@@ -1,0 +1,323 @@
+{
+  "_doc": [
+    "Built-in playbook seed corpus for Batitong Phase 2B.",
+    "Loaded by `python manage.py seed_playbooks`. Idempotent: matched by slug.",
+    "Each entry MUST set is_built_in=True (workspace=null in DB).",
+    "tool keys are `<provider_kind>:<tool_name>` matching MCPTool.",
+    "Steps where the tool is missing are skipped at seed time with a warning."
+  ],
+  "playbooks": [
+    {
+      "slug": "recon-active-scan-quick",
+      "name": "Recon · Active scan (quick)",
+      "description": "Lightweight active scan to enumerate live hosts + open ports + top vulnerabilities on a single target.",
+      "technique": "T1595.001",
+      "objective": "recon",
+      "risk_envelope": "med",
+      "on_step_failure": "skip",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:nmap_scan",
+          "title": "TCP top-1000 scan",
+          "rationale": "Fast initial sweep to find live hosts + open services.",
+          "arg_template": {"target": "{{ target.value }}", "ports": "top-1000"}
+        },
+        {
+          "order": 2,
+          "tool": "kali:naabu",
+          "title": "High-rate port discovery",
+          "rationale": "Confirm Nmap findings + catch services Nmap missed.",
+          "arg_template": {"host": "{{ target.value }}"},
+          "is_optional": true
+        },
+        {
+          "order": 3,
+          "tool": "kali:nuclei",
+          "title": "Templated vulnerability triage",
+          "rationale": "Surface low-hanging CVEs + misconfigs on detected services.",
+          "arg_template": {"target": "{{ target.value }}", "severity": "low,medium,high,critical"}
+        }
+      ]
+    },
+    {
+      "slug": "recon-subdomain-enum",
+      "name": "Recon · Passive subdomain enumeration",
+      "description": "Stack passive sources to map a domain's external surface area.",
+      "technique": "T1590.002",
+      "objective": "recon",
+      "risk_envelope": "low",
+      "on_step_failure": "skip",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:subfinder",
+          "title": "Passive sources via subfinder",
+          "rationale": "Aggregate dozens of OSINT feeds in one shot.",
+          "arg_template": {"domain": "{{ target.value }}"}
+        },
+        {
+          "order": 2,
+          "tool": "kali:assetfinder",
+          "title": "Cross-check with assetfinder",
+          "rationale": "Catch subdomains subfinder missed (different feed mix).",
+          "arg_template": {"domain": "{{ target.value }}"},
+          "is_optional": true
+        },
+        {
+          "order": 3,
+          "tool": "kali:amass_enum",
+          "title": "Active DNS resolution + amass",
+          "rationale": "Resolve candidates + walk DNS records to pivot.",
+          "arg_template": {"domain": "{{ target.value }}", "passive": true}
+        }
+      ]
+    },
+    {
+      "slug": "recon-osint-people",
+      "name": "Recon · OSINT (people + emails)",
+      "description": "Gather emails, employee names, and exposed metadata using theHarvester.",
+      "technique": "T1589",
+      "objective": "recon",
+      "risk_envelope": "low",
+      "on_step_failure": "stop",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:theharvester",
+          "title": "theHarvester OSINT sweep",
+          "rationale": "Pull emails, hostnames, and IPs from public sources.",
+          "arg_template": {"domain": "{{ target.value }}", "limit": 200}
+        }
+      ]
+    },
+    {
+      "slug": "web-audit-sqli",
+      "name": "Web Audit · SQL injection (T1190)",
+      "description": "Discover endpoints, fingerprint, then probe for SQLi via sqlmap.",
+      "technique": "T1190",
+      "objective": "web-audit",
+      "risk_envelope": "high",
+      "on_step_failure": "stop",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:gobuster_dir",
+          "title": "Directory + file brute-force",
+          "rationale": "Map reachable endpoints before probing for injection.",
+          "arg_template": {"url": "{{ target.value }}", "wordlist": "common.txt"}
+        },
+        {
+          "order": 2,
+          "tool": "kali:nuclei_scan",
+          "title": "Nuclei: sqli + reflected templates",
+          "rationale": "Quickly fingerprint candidate vulnerable parameters.",
+          "arg_template": {"target": "{{ target.value }}", "tags": "sqli,xss,rce"}
+        },
+        {
+          "order": 3,
+          "tool": "kali:sqlmap",
+          "title": "sqlmap on suspicious endpoints",
+          "rationale": "Confirm + exploit injection points (HIGH RISK — needs approval).",
+          "arg_template": {"url": "{{ target.value }}", "level": 2, "risk": 1, "batch": true}
+        }
+      ]
+    },
+    {
+      "slug": "web-audit-content-discovery",
+      "name": "Web Audit · Content discovery",
+      "description": "Brute-force directories, files, and virtual hosts using ffuf + gobuster.",
+      "technique": "T1083",
+      "objective": "web-audit",
+      "risk_envelope": "med",
+      "on_step_failure": "skip",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:ffuf",
+          "title": "ffuf: directory wordlist",
+          "rationale": "Fast HTTP fuzzer for hidden paths.",
+          "arg_template": {"url": "{{ target.value }}/FUZZ", "wordlist": "common.txt"}
+        },
+        {
+          "order": 2,
+          "tool": "kali:gobuster_vhost",
+          "title": "gobuster: virtual host enumeration",
+          "rationale": "Enumerate vhosts to discover staging / dev sites on same IP.",
+          "arg_template": {"url": "{{ target.value }}", "wordlist": "subdomains-top1m.txt"},
+          "is_optional": true
+        }
+      ]
+    },
+    {
+      "slug": "web-audit-cms-fingerprint",
+      "name": "Web Audit · CMS fingerprint + audit",
+      "description": "Detect WordPress/Joomla and run targeted audits.",
+      "technique": "T1190",
+      "objective": "web-audit",
+      "risk_envelope": "med",
+      "on_step_failure": "skip",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:nikto",
+          "title": "Nikto baseline scan",
+          "rationale": "General-purpose web server findings.",
+          "arg_template": {"url": "{{ target.value }}"}
+        },
+        {
+          "order": 2,
+          "tool": "kali:wpscan",
+          "title": "WPScan (WordPress)",
+          "rationale": "WordPress-specific vulnerabilities and user enumeration.",
+          "arg_template": {"url": "{{ target.value }}"},
+          "is_optional": true
+        },
+        {
+          "order": 3,
+          "tool": "kali:joomscan",
+          "title": "JoomScan (Joomla)",
+          "rationale": "Joomla-specific issues — runs only if site is Joomla.",
+          "arg_template": {"url": "{{ target.value }}"},
+          "is_optional": true
+        }
+      ]
+    },
+    {
+      "slug": "ad-audit-smb-shares",
+      "name": "AD Audit · SMB share enumeration",
+      "description": "Enumerate accessible SMB shares + users on a Windows host.",
+      "technique": "T1135",
+      "objective": "ad-audit",
+      "risk_envelope": "med",
+      "on_step_failure": "skip",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:enum4linux_ng",
+          "title": "enum4linux-ng baseline",
+          "rationale": "Pull users/groups/shares + OS info via SMB null session.",
+          "arg_template": {"target": "{{ target.value }}"}
+        },
+        {
+          "order": 2,
+          "tool": "kali:smbmap",
+          "title": "smbmap share enum",
+          "rationale": "Confirm share read/write + map filesystem.",
+          "arg_template": {"host": "{{ target.value }}"}
+        }
+      ]
+    },
+    {
+      "slug": "ad-audit-credential-spray",
+      "name": "AD Audit · Credential spray (HIGH RISK)",
+      "description": "Spray a small known list against AD to identify weak passwords. Requires approval.",
+      "technique": "T1110.001",
+      "objective": "ad-audit",
+      "risk_envelope": "high",
+      "on_step_failure": "stop",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:enum4linux",
+          "title": "Enumerate user list",
+          "rationale": "Build a target list before spraying.",
+          "arg_template": {"target": "{{ target.value }}"}
+        },
+        {
+          "order": 2,
+          "tool": "kali:netexec",
+          "title": "netexec password spray",
+          "rationale": "Spray a common password against the user list (HIGH RISK).",
+          "arg_template": {"protocol": "smb", "host": "{{ target.value }}", "userlist": "users.txt", "password": "Spring2026!"}
+        }
+      ]
+    },
+    {
+      "slug": "ad-audit-secretsdump",
+      "name": "AD Audit · Secretsdump (CRITICAL)",
+      "description": "Dump cached credentials from a compromised host. Requires approval; treat output as sensitive.",
+      "technique": "T1003.002",
+      "objective": "ad-audit",
+      "risk_envelope": "crit",
+      "on_step_failure": "stop",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:impacket_secretsdump",
+          "title": "Impacket secretsdump",
+          "rationale": "Pull SAM/LSA/NTDS hashes (HIGHLY DESTRUCTIVE — needs Owner approval).",
+          "arg_template": {"target": "{{ target.value }}", "auth_user": "{{ workspace.slug }}\\\\Administrator"}
+        }
+      ]
+    },
+    {
+      "slug": "lateral-movement-psexec",
+      "name": "Lateral Movement · psexec (HIGH RISK)",
+      "description": "Execute commands on a remote host via SMB once admin creds are known.",
+      "technique": "T1021.002",
+      "objective": "comprehensive",
+      "risk_envelope": "high",
+      "on_step_failure": "stop",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:impacket_psexec",
+          "title": "Impacket psexec",
+          "rationale": "Run a command remotely (HIGH RISK — needs approval, leaves an event log).",
+          "arg_template": {"target": "{{ target.value }}", "command": "whoami"}
+        }
+      ]
+    },
+    {
+      "slug": "creds-hash-cracking",
+      "name": "Credential Access · Hash cracking",
+      "description": "Crack captured hashes offline with john + hashcat.",
+      "technique": "T1110.002",
+      "objective": "comprehensive",
+      "risk_envelope": "low",
+      "on_step_failure": "skip",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "kali:john",
+          "title": "John the Ripper (initial pass)",
+          "rationale": "Fast first pass with default rules.",
+          "arg_template": {"hash_file": "{{ engagement.id }}-hashes.txt"}
+        },
+        {
+          "order": 2,
+          "tool": "kali:hashcat",
+          "title": "hashcat (rule-based pass)",
+          "rationale": "GPU-friendly second pass with rockyou + rules.",
+          "arg_template": {"hash_file": "{{ engagement.id }}-hashes.txt", "wordlist": "rockyou.txt"}
+        }
+      ]
+    },
+    {
+      "slug": "comprehensive-hexstrike-recon",
+      "name": "Comprehensive · HexStrike recon planner",
+      "description": "Hand off planning to HexStrike's planner + run its recon agent.",
+      "technique": "T1595",
+      "objective": "comprehensive",
+      "risk_envelope": "med",
+      "on_step_failure": "stop",
+      "steps": [
+        {
+          "order": 1,
+          "tool": "hexstrike:planner",
+          "title": "HexStrike planner",
+          "rationale": "Generate a recon plan tailored to the target.",
+          "arg_template": {"goal": "recon", "target": "{{ target.value }}"}
+        },
+        {
+          "order": 2,
+          "tool": "hexstrike:run_recon",
+          "title": "HexStrike run_recon",
+          "rationale": "Execute the recon plan.",
+          "arg_template": {"target": "{{ target.value }}"}
+        }
+      ]
+    }
+  ]
+}

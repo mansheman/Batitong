@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}MITRE matrix{% endblock %}
+{% block crumb %}~/mitre{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <div>
+      <h2 class="block__title">MITRE ATT&amp;CK matrix</h2>
+      <div class="block__meta">
+        <span class="badge badge--mono">v15.1</span>
+        <span class="badge badge--mono">{{ columns|length }} tactics</span>
+        <span class="badge badge--mono">{{ technique_count }} techniques</span>
+      </div>
+    </div>
+    <a class="link link--mono" href="{% url 'playbooks:list' %}">▶ playbooks</a>
+  </header>
+
+  <div class="mitre-matrix">
+    {% for col in columns %}
+    <article class="mitre-col">
+      <header class="mitre-col__head">
+        <span class="mono">{{ col.tactic.tactic_id }}</span>
+        <span class="mitre-col__name">{{ col.tactic.name }}</span>
+        <span class="muted mono">{{ col.techniques|length }}</span>
+      </header>
+      <ul class="mitre-tech-list">
+        {% for tech in col.techniques %}
+        <li class="mitre-tech {% if tech.is_subtechnique %}mitre-tech--sub{% endif %} {% if tech.is_custom %}mitre-tech--custom{% endif %}">
+          <a class="link" href="{% url 'mitre:technique-detail' technique_id=tech.technique_id %}">
+            <span class="mono">{{ tech.technique_id }}</span>
+            <span class="mitre-tech__name">{{ tech.name }}</span>
+          </a>
+        </li>
+        {% empty %}
+        <li class="muted">(no techniques in scope)</li>
+        {% endfor %}
+      </ul>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

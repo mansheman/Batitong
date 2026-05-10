@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}edit · {{ playbook.name }}{% endblock %}
+{% block crumb %}~/playbooks/{{ playbook.slug }}/edit{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Edit playbook</h2>
+    <a class="link link--mono" href="{% url 'playbooks:detail' slug=playbook.slug %}">← back</a>
+  </header>
+
+  <form method="post" class="form form--card">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <label class="field">
+      <span class="field__label">name</span>
+      {{ form.name }}
+    </label>
+    <label class="field">
+      <span class="field__label">description</span>
+      {{ form.description }}
+    </label>
+    <label class="field">
+      <span class="field__label">MITRE technique</span>
+      {{ form.technique }}
+    </label>
+    <div class="grid grid--3">
+      <label class="field">
+        <span class="field__label">objective</span>
+        {{ form.objective }}
+      </label>
+      <label class="field">
+        <span class="field__label">risk envelope</span>
+        {{ form.risk_envelope }}
+      </label>
+      <label class="field">
+        <span class="field__label">on step failure</span>
+        {{ form.on_step_failure }}
+      </label>
+    </div>
+
+    {{ formset.management_form }}
+    <h3 class="card__title">Steps</h3>
+    <table class="table table--editable">
+      <thead>
+        <tr>
+          <th style="width:70px">order</th>
+          <th>tool</th>
+          <th>title</th>
+          <th>rationale</th>
+          <th>arg_template (JSON)</th>
+          <th style="width:80px">opt.</th>
+          <th style="width:90px">timeout</th>
+          <th style="width:60px">delete</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for step_form in formset %}
+        <tr>
+          <td>{{ step_form.id }}{{ step_form.order }}</td>
+          <td>{{ step_form.tool }}</td>
+          <td>{{ step_form.title }}</td>
+          <td>{{ step_form.rationale }}</td>
+          <td>{{ step_form.arg_template_json }}
+            {% if step_form.arg_template_json.errors %}
+              <span class="field__error">{{ step_form.arg_template_json.errors|join:', ' }}</span>
+            {% endif %}
+          </td>
+          <td>{{ step_form.is_optional }}</td>
+          <td>{{ step_form.timeout_sec }}</td>
+          <td>{{ step_form.DELETE }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="form__actions">
+      <button type="submit" class="btn btn--primary">save</button>
+      <a class="btn btn--ghost btn--sm" href="{% url 'playbooks:detail' slug=playbook.slug %}">cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

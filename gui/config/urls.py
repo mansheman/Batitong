@@ -19,6 +19,8 @@ urlpatterns = [
     path("chat/", include("apps.llm.urls")),
     path("approvals/", include("apps.approvals.urls")),
     path("credentials/", include("apps.credentials.urls")),
+    path("playbooks/", include("apps.playbooks.urls")),
+    path("mitre/", include("apps.mitre.urls")),
 ]
 
 if settings.DEBUG:
