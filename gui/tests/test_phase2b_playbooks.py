@@ -767,3 +767,22 @@ def test_form_rejects_unrenderable_template(workspace, builtin_playbook, low_too
     )
     assert not form.is_valid()
     assert "arg_template_json" in form.errors
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Regression: GET /chat/new/ must render without 500 (the anchored_target
+# queryset used a non-existent ``is_active`` field on Target).
+# ──────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_chat_new_get_renders(client, user, membership, target, builtin_playbook):
+    """GET /chat/new/ must render the form with the anchor fields."""
+    client.force_login(user)
+    resp = client.get(reverse("llm:new"))
+    assert resp.status_code == 200, resp.content[:400]
+    body = resp.content
+    assert b'name="anchored_playbook"' in body
+    assert b'name="anchored_target"' in body
+    # Built-in playbook is offered as an option.
+    assert builtin_playbook.name.encode() in body

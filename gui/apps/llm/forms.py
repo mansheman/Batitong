@@ -88,7 +88,7 @@ class NewChatForm(forms.Form):
                 .order_by("-is_built_in", "name")
             )
             self.fields["anchored_target"].queryset = Target.objects.filter(
-                workspace=workspace, is_active=True
+                workspace=workspace
             ).order_by("value")
         else:
             self.fields["anchored_playbook"].queryset = Playbook.objects.none()
