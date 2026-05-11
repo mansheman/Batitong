@@ -58,10 +58,28 @@
       </ul>
     </details>
 
+    <fieldset class="form__group">
+      <legend class="field__label">playbook anchor (optional)</legend>
+      <p class="muted">When set, the system prompt will reference the playbook's MITRE technique + recommended tools.</p>
+      <label class="field">
+        <span class="field__label">playbook</span>
+        {{ form.anchored_playbook }}
+        <span class="field__hint">{{ form.anchored_playbook.help_text }}</span>
+        {% if form.anchored_playbook.errors %}<span class="field__error">{{ form.anchored_playbook.errors|join:', ' }}</span>{% endif %}
+      </label>
+      <label class="field">
+        <span class="field__label">target (only when anchored)</span>
+        {{ form.anchored_target }}
+        {% if form.anchored_target.errors %}<span class="field__error">{{ form.anchored_target.errors|join:', ' }}</span>{% endif %}
+      </label>
+    </fieldset>
+
     <label class="field">
       <span class="field__label">extra system prompt (optional)</span>
       {{ form.system_prompt }}
     </label>
+
+    {% if form.non_field_errors %}<p class="field__error">{{ form.non_field_errors|join:', ' }}</p>{% endif %}
 
     <button type="submit" class="btn btn--primary">▶ create chat</button>
   </form>

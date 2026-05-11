@@ -102,6 +102,16 @@ class MCPTool(models.Model):
     )
     schema = models.JSONField(default=dict, help_text="JSON schema of input arguments")
     is_available = models.BooleanField(default=True)
+    techniques = models.ManyToManyField(
+        "mitre.MitreTechnique",
+        blank=True,
+        related_name="tools",
+        help_text=(
+            "MITRE techniques this tool maps to. Curated via "
+            "``apps/mitre/data/tool_technique_map.json`` and applied with "
+            "``python manage.py sync_tool_technique_map``."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

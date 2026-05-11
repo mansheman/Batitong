@@ -55,11 +55,13 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "apps.accounts",
     "apps.targets",
+    "apps.mitre",
     "apps.engagements",
     "apps.mcp",
     "apps.credentials",
     "apps.approvals",
     "apps.llm",
+    "apps.playbooks",
     "apps.ui",
 ]
 
@@ -167,6 +169,7 @@ CELERY_TASK_QUEUES = {
 CELERY_TASK_ROUTES = {
     "apps.engagements.tasks.run_tool_execution": {"queue": "heavy"},
     "apps.llm.tasks.run_chat_turn": {"queue": "llm"},
+    "apps.playbooks.tasks.run_playbook_step": {"queue": "llm"},
 }
 
 # ---------------------------------------------------------------------------

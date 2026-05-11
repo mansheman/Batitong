@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ technique.technique_id }} · {{ technique.name }}{% endblock %}
+{% block crumb %}~/mitre/{{ technique.technique_id }}{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <div>
+      <h2 class="block__title">
+        <span class="mono">{{ technique.technique_id }}</span>
+        {{ technique.name }}
+      </h2>
+      <div class="block__meta">
+        <span class="badge badge--mono">{{ technique.tactic.tactic_id }} · {{ technique.tactic.name }}</span>
+        {% if technique.is_subtechnique %}
+          <span class="badge badge--mono">sub-technique of
+            <a class="link" href="{% url 'mitre:technique-detail' technique_id=technique.parent.technique_id %}">{{ technique.parent.technique_id }}</a>
+          </span>
+        {% endif %}
+        {% if technique.is_custom %}<span class="badge badge--med">custom</span>{% endif %}
+      </div>
+    </div>
+    <a class="link link--mono" href="{% url 'mitre:matrix' %}">← matrix</a>
+  </header>
+
+  <article class="card card--full">
+    <h3 class="card__title">Description</h3>
+    <p class="muted">{{ technique.description|default:'(no description)'|linebreaksbr }}</p>
+    {% if technique.references %}
+    <ul class="chip-list">
+      {% for ref in technique.references %}<li class="chip"><a class="link link--mono" href="{{ ref }}" target="_blank" rel="noopener">{{ ref }}</a></li>{% endfor %}
+    </ul>
+    {% endif %}
+  </article>
+
+  <div class="grid grid--2">
+    <article class="card card--full">
+      <span class="card__num">tools</span>
+      <h3 class="card__title">Mapped tools</h3>
+      <ul class="chip-list">
+        {% for tool in related_tools %}
+          <li class="chip"><a class="link" href="{% url 'mcp:tool-detail' tool_id=tool.id %}">{{ tool.provider.kind }}:{{ tool.name }}</a></li>
+        {% empty %}
+          <li class="muted">(no tools mapped — add via tool_technique_map.json)</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="card card--full">
+      <span class="card__num">playbooks</span>
+      <h3 class="card__title">Playbooks using this technique</h3>
+      <ul class="step-list">
+        {% for pb in related_playbooks %}
+          <li class="step">
+            <header class="step__head">
+              <span class="step__title">
+                <a class="link" href="{% url 'playbooks:detail' slug=pb.slug %}">{{ pb.name }}</a>
+              </span>
+              {% if pb.is_built_in %}<span class="badge badge--ok">built-in</span>{% endif %}
+              <span class="status status--mini status--{{ pb.risk_envelope }}">risk·{{ pb.risk_envelope }}</span>
+            </header>
+            <p class="step__rationale">{{ pb.description|truncatechars:160 }}</p>
+          </li>
+        {% empty %}
+          <li class="muted">(no playbooks yet — create one with this technique)</li>
+        {% endfor %}
+      </ul>
+    </article>
+  </div>
+
+  {% if sub_techniques %}
+  <article class="card card--full">
+    <span class="card__num">sub-techniques</span>
+    <h3 class="card__title">Sub-techniques</h3>
+    <ul class="chip-list">
+      {% for sub in sub_techniques %}
+        <li class="chip"><a class="link" href="{% url 'mitre:technique-detail' technique_id=sub.technique_id %}"><span class="mono">{{ sub.technique_id }}</span> {{ sub.name }}</a></li>
+      {% endfor %}
+    </ul>
+  </article>
+  {% endif %}
+</section>
+{% endblock %}

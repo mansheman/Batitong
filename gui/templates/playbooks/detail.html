@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load batitong %}
+{% block title %}{{ playbook.name }}{% endblock %}
+{% block crumb %}~/playbooks/{{ playbook.slug }}{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <div>
+      <h2 class="block__title">{{ playbook.name }}</h2>
+      <div class="block__meta">
+        <span class="mono">{{ playbook.slug }}</span>
+        <a class="badge badge--mono link" href="{% url 'mitre:technique-detail' technique_id=playbook.technique.technique_id %}">{{ playbook.technique.technique_id }} · {{ playbook.technique.name|truncatechars:40 }}</a>
+        <span class="badge badge--mono">{{ playbook.technique.tactic.tactic_id }}</span>
+        <span class="badge badge--mono">{{ playbook.get_objective_display }}</span>
+        <span class="status status--mini status--{{ playbook.risk_envelope }}">risk·{{ playbook.risk_envelope }}</span>
+        {% if playbook.is_built_in %}<span class="badge badge--ok">built-in</span>{% endif %}
+        <span class="muted">on-failure: {{ playbook.get_on_step_failure_display }}</span>
+      </div>
+    </div>
+    <div class="block__actions">
+      {% if active_membership.can_run_tools %}
+        <a class="btn btn--primary btn--sm" href="{% url 'playbooks:start-run' slug=playbook.slug %}">▶ run playbook</a>
+      {% endif %}
+      {% if can_edit %}
+        <a class="btn btn--ghost btn--sm" href="{% url 'playbooks:edit' slug=playbook.slug %}">edit</a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if playbook.description %}<p class="muted">{{ playbook.description }}</p>{% endif %}
+
+  <article class="card card--full">
+    <span class="card__num">steps</span>
+    <h3 class="card__title">Steps</h3>
+    <ol class="step-list">
+      {% for step in steps %}
+      <li class="step">
+        <header class="step__head">
+          <span class="step__order">{{ step.order|stringformat:"02d" }}</span>
+          <span class="step__title">{{ step.title }}</span>
+          <span class="badge badge--mono">{{ step.tool.provider.kind }}:{{ step.tool.name }}</span>
+          <span class="status status--mini status--{{ step.tool.risk_level }}">risk·{{ step.tool.risk_level }}</span>
+          {% if step.is_optional %}<span class="badge">optional</span>{% endif %}
+        </header>
+        {% if step.rationale %}<p class="step__rationale">{{ step.rationale }}</p>{% endif %}
+        {% if step.arg_template %}
+        <details>
+          <summary class="link link--mono">arg_template</summary>
+          <pre class="output mono">{{ step.arg_template|pretty_json }}</pre>
+        </details>
+        {% endif %}
+      </li>
+      {% empty %}
+      <li class="muted">No steps yet.</li>
+      {% endfor %}
+    </ol>
+  </article>
+
+  <article class="card card--full">
+    <span class="card__num">runs</span>
+    <h3 class="card__title">Recent runs</h3>
+    <table class="table">
+      <thead>
+        <tr><th>id</th><th>status</th><th>target</th><th>started</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for run in runs %}
+        <tr>
+          <td><span class="mono">{{ run.short_id }}</span></td>
+          <td><span class="status {{ run.status|status_class }}">{{ run.get_status_display }}</span></td>
+          <td><span class="mono">{{ run.target.value }}</span></td>
+          <td>{{ run.created_at|date:'Y-m-d H:i' }}</td>
+          <td><a class="link link--mono" href="{% url 'playbooks:run-detail' slug=playbook.slug run_id=run.id %}">open →</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="table__empty">No runs yet — start one above.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+{% endblock %}

@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from django import forms
 from django.conf import settings
+from django.db.models import Q
+
+from apps.targets.models import Target
 
 from .adapters.github_models import GITHUB_MODELS_OPTIONS
 
@@ -48,6 +51,20 @@ class NewChatForm(forms.Form):
             attrs={"class": "input", "rows": 4, "placeholder": "extra workspace notes (optional)"}
         ),
     )
+    anchored_playbook = forms.ModelChoiceField(
+        required=False,
+        queryset=None,  # set in __init__
+        empty_label="(no anchor — free-form chat)",
+        help_text=(
+            "Anchor this chat to a playbook so the system prompt references "
+            "the linked MITRE technique + recommended tool set."
+        ),
+    )
+    anchored_target = forms.ModelChoiceField(
+        required=False,
+        queryset=Target.objects.none(),
+        empty_label="(no target — leave blank when free-form)",
+    )
 
     def __init__(self, *args, workspace=None, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -59,6 +76,30 @@ class NewChatForm(forms.Form):
             self.fields["provider_kind"].help_text = (
                 "Workspace privacy mode is on — cloud providers are disabled."
             )
+
+        # Lazy import to avoid circulars at module load.
+        from apps.playbooks.models import Playbook
+
+        if workspace is not None:
+            self.fields["anchored_playbook"].queryset = (
+                Playbook.objects.filter(is_active=True)
+                .filter(Q(is_built_in=True) | Q(workspace=workspace))
+                .select_related("technique", "technique__tactic")
+                .order_by("-is_built_in", "name")
+            )
+            self.fields["anchored_target"].queryset = Target.objects.filter(
+                workspace=workspace
+            ).order_by("value")
+        else:
+            self.fields["anchored_playbook"].queryset = Playbook.objects.none()
+
+    def clean(self):
+        cleaned = super().clean()
+        playbook = cleaned.get("anchored_playbook")
+        target = cleaned.get("anchored_target")
+        if target is not None and playbook is None:
+            raise forms.ValidationError("Pick a playbook to anchor to, or leave the target blank.")
+        return cleaned
 
 
 class LLMRouterSettingsForm(forms.Form):

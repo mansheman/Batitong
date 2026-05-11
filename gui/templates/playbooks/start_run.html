@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}run · {{ playbook.name }}{% endblock %}
+{% block crumb %}~/playbooks/{{ playbook.slug }}/run{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <div>
+      <h2 class="block__title">Start playbook run</h2>
+      <div class="block__meta">
+        <span class="mono">{{ playbook.name }}</span>
+        <span class="badge badge--mono">{{ playbook.technique.technique_id }}</span>
+        <span class="badge badge--mono">{{ playbook.steps.count }} steps</span>
+        <span class="status status--mini status--{{ playbook.risk_envelope }}">risk·{{ playbook.risk_envelope }}</span>
+      </div>
+    </div>
+    <a class="link link--mono" href="{% url 'playbooks:detail' slug=playbook.slug %}">← back</a>
+  </header>
+
+  <form method="post" class="form form--card">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <label class="field">
+      <span class="field__label">target</span>
+      {{ form.target }}
+      {% if form.target.errors %}<span class="field__error">{{ form.target.errors|join:', ' }}</span>{% endif %}
+    </label>
+    <label class="field">
+      <span class="field__label">on step failure (override)</span>
+      {{ form.on_step_failure_override }}
+    </label>
+    <label class="field">
+      <span class="field__label">arg overrides (optional JSON)</span>
+      {{ form.arg_overrides }}
+      <span class="field__hint">{{ form.arg_overrides.help_text }}</span>
+      {% if form.arg_overrides.errors %}<span class="field__error">{{ form.arg_overrides.errors|join:', ' }}</span>{% endif %}
+    </label>
+    <label class="field field--inline">
+      {{ form.force_envelope }} <span class="field__label">force run even if a step exceeds the risk envelope</span>
+    </label>
+
+    <button type="submit" class="btn btn--primary">▶ start run</button>
+  </form>
+</section>
+{% endblock %}

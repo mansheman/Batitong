@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load batitong %}
+{% block title %}playbooks{% endblock %}
+{% block crumb %}~/playbooks{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Playbooks</h2>
+    <div class="block__actions">
+      <a class="link link--mono" href="{% url 'mitre:matrix' %}">▦ MITRE matrix</a>
+      {% if active_membership.can_create_engagements %}
+        <a class="btn btn--primary btn--sm" href="{% url 'playbooks:new' %}">+ new playbook</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <form class="filter-bar" method="get">
+    <label class="field field--inline">
+      <span class="field__label">tactic</span>
+      <select name="tactic">
+        <option value="">all</option>
+        {% for tactic in tactics %}
+          <option value="{{ tactic.tactic_id }}" {% if tactic.tactic_id == active_tactic %}selected{% endif %}>
+            {{ tactic.tactic_id }} · {{ tactic.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field field--inline">
+      <span class="field__label">objective</span>
+      <select name="objective">
+        <option value="">all</option>
+        <option value="recon"        {% if active_objective == 'recon' %}selected{% endif %}>Reconnaissance</option>
+        <option value="web-audit"    {% if active_objective == 'web-audit' %}selected{% endif %}>Web Audit</option>
+        <option value="ad-audit"     {% if active_objective == 'ad-audit' %}selected{% endif %}>AD Audit</option>
+        <option value="comprehensive"{% if active_objective == 'comprehensive' %}selected{% endif %}>Full Pentest</option>
+      </select>
+    </label>
+    <label class="field field--inline">
+      <span class="field__label">scope</span>
+      <select name="scope">
+        <option value="">all</option>
+        <option value="builtin" {% if active_scope == 'builtin' %}selected{% endif %}>Built-in</option>
+        <option value="custom"  {% if active_scope == 'custom'  %}selected{% endif %}>Custom</option>
+      </select>
+    </label>
+    <button class="btn btn--ghost btn--sm" type="submit">apply</button>
+    <a class="link link--mono" href="{% url 'playbooks:list' %}">reset</a>
+  </form>
+
+  <div class="grid grid--cards">
+    {% for pb in playbooks %}
+    <article class="card card--full playbook-card">
+      <header class="playbook-card__head">
+        <span class="badge badge--mono">{{ pb.technique.technique_id }}</span>
+        <span class="badge badge--mono">{{ pb.technique.tactic.tactic_id }}</span>
+        {% if pb.is_built_in %}
+          <span class="badge badge--ok">built-in</span>
+        {% else %}
+          <span class="badge">{{ pb.workspace.slug }}</span>
+        {% endif %}
+        <span class="badge badge--mono">{{ pb.steps.count }} step{{ pb.steps.count|pluralize }}</span>
+        <span class="status status--mini status--{{ pb.risk_envelope }}">risk·{{ pb.risk_envelope }}</span>
+      </header>
+      <h3 class="card__title"><a class="link" href="{% url 'playbooks:detail' slug=pb.slug %}">{{ pb.name }}</a></h3>
+      <p class="muted">{{ pb.description|default:'No description.'|truncatechars:160 }}</p>
+      <footer class="playbook-card__foot">
+        <span class="muted mono">{{ pb.technique.tactic.name }}</span>
+        <span class="muted">→</span>
+        <span class="mono">{{ pb.technique.name|truncatechars:48 }}</span>
+        <a class="link link--mono" href="{% url 'playbooks:detail' slug=pb.slug %}">open →</a>
+      </footer>
+    </article>
+    {% empty %}
+      <p class="muted">No playbooks match these filters yet.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
