@@ -1,0 +1,17 @@
+{% if rate_limited %}
+<aside class="rate-banner" role="status" aria-live="polite"
+       x-data="{ secs: {{ rate_limited.retry_after }}, show: true }"
+       x-show="show"
+       x-init="if (secs > 0) { const t = setInterval(() => { secs--; if (secs <= 0) { clearInterval(t); show = false; } }, 1000); }">
+  <span class="rate-banner__icon">⚠</span>
+  <span class="rate-banner__title">
+    rate limit hit on <code class="code">{{ rate_limited.bucket }}</code>
+    <span class="muted">· scope {{ rate_limited.scope }}</span>
+  </span>
+  <span class="rate-banner__hint">
+    retry in <strong x-text="secs"></strong>s — this protects the LLM + MCP queues
+  </span>
+  <a href="{% url 'ui:settings' %}#rate-limits" class="rate-banner__link">view policy →</a>
+  <button type="button" class="rate-banner__close" @click="show = false" aria-label="dismiss">✕</button>
+</aside>
+{% endif %}

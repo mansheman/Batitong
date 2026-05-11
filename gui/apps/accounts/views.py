@@ -10,9 +10,12 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
+from apps.ui.ratelimit import rate_limit
+
 
 @never_cache
 @require_http_methods(["GET", "POST"])
+@rate_limit("login")
 def login_view(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         return redirect("ui:dashboard")

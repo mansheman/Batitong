@@ -18,6 +18,7 @@ from apps.llm.adapters.groq import GROQ_OPTIONS
 from apps.llm.adapters.openrouter import OPENROUTER_OPTIONS
 from apps.mcp.models import MCPProvider, MCPTool
 from apps.mcp.services import format_synced_at
+from apps.ui.ratelimit import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,25 @@ def _can_manage_workspace(request: HttpRequest) -> bool:
     return bool(membership and membership.can_approve_high_risk)
 
 
+def _rate_limit_rows() -> list[dict[str, object]]:
+    """Return a serialisable view of ``settings.RATE_LIMITS`` for the Settings UI."""
+    rates = getattr(settings, "RATE_LIMITS", {}) or {}
+    rows: list[dict[str, object]] = []
+    for bucket in sorted(rates):
+        scopes = rates.get(bucket) or {}
+        rows.append(
+            {
+                "bucket": bucket,
+                "user": scopes.get("user"),
+                "workspace": scopes.get("workspace"),
+                "ip": scopes.get("ip"),
+            }
+        )
+    return rows
+
+
 @login_required
+@rate_limit("ui_settings")
 def settings_view(request: HttpRequest) -> HttpResponse:
     workspace = getattr(request, "workspace", None)
 
@@ -142,5 +161,7 @@ def settings_view(request: HttpRequest) -> HttpResponse:
             "creds_count": creds_count,
             "can_manage": _can_manage_workspace(request),
             "workspace": workspace,
+            "rate_limit_enabled": getattr(settings, "RATELIMIT_ENABLE", False),
+            "rate_limit_rows": _rate_limit_rows(),
         },
     )

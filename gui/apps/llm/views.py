@@ -8,6 +8,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.mcp.models import MCPTool
+from apps.ui.ratelimit import rate_limit
 
 from .adapters.github_models import GITHUB_MODELS_OPTIONS
 from .adapters.groq import GROQ_OPTIONS
@@ -34,6 +35,7 @@ def chat_list(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+@rate_limit("chat_new")
 def chat_new(request: HttpRequest) -> HttpResponse:
     workspace = getattr(request, "workspace", None)
     membership = getattr(request, "membership", None)
@@ -111,6 +113,7 @@ def chat_detail(request: HttpRequest, session_id) -> HttpResponse:
 
 
 @login_required
+@rate_limit("chat_post")
 def chat_post(request: HttpRequest, session_id) -> HttpResponse:
     workspace = getattr(request, "workspace", None)
     membership = getattr(request, "membership", None)

@@ -75,6 +75,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "apps.accounts.middleware.CurrentWorkspaceMiddleware",
+    "apps.ui.ratelimit.RateLimitMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -93,6 +94,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.ui.context_processors.batitong_context",
+                "apps.ui.context_processors.rate_limit_context",
             ],
         },
     },
@@ -170,6 +172,44 @@ CELERY_TASK_ROUTES = {
     "apps.engagements.tasks.run_tool_execution": {"queue": "heavy"},
     "apps.llm.tasks.run_chat_turn": {"queue": "llm"},
     "apps.playbooks.tasks.run_playbook_step": {"queue": "llm"},
+}
+
+# ---------------------------------------------------------------------------
+# Cache (Redis) — shared by django-ratelimit and any future per-request cache.
+# Falls back to local-memory in test settings (no Redis dependency).
+# ---------------------------------------------------------------------------
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": env("RATELIMIT_REDIS_URL", default=REDIS_URL),
+        "TIMEOUT": 300,
+        "KEY_PREFIX": "batitong:rl",
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Rate limiting (Phase 2C) — driven by ``django-ratelimit`` + Redis cache.
+# Disabled by default so dev/test never trips; production must set
+# ``RATELIMIT_ENABLE=1`` in the environment to opt in.
+# ---------------------------------------------------------------------------
+RATELIMIT_USE_CACHE = "default"
+RATELIMIT_ENABLE = env.bool("RATELIMIT_ENABLE", default=False)
+# Per-bucket rates: each bucket exposes one or more keys.
+#   * "user"      -> per authenticated user (falls back to per-IP when anon)
+#   * "ip"        -> per source IP (used by anonymous-only endpoints)
+#   * "workspace" -> per active workspace
+# ``None`` means "no limit for this key".
+RATE_LIMITS = {
+    "login": {"ip": "10/m"},
+    "chat_new": {"user": "10/m", "workspace": "30/m"},
+    "chat_post": {"user": "30/m", "workspace": "120/m"},
+    "chat_ws": {"user": "30/m", "workspace": "120/m"},
+    "engagement_start": {"user": "20/m", "workspace": "60/m"},
+    "playbook_start": {"user": "10/m", "workspace": "30/m"},
+    "approval_decide": {"user": "30/m", "workspace": "60/m"},
+    "credential_test": {"user": "10/m", "workspace": "30/m"},
+    "ui_settings": {"user": "30/m"},
+    "global": {"ip": "600/m"},
 }
 
 # ---------------------------------------------------------------------------

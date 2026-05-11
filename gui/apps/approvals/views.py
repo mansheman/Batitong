@@ -7,6 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.ui.ratelimit import rate_limit
+
 from .models import ApprovalRequest
 from .services import decide as decide_service
 
@@ -61,6 +63,7 @@ def approval_detail(request: HttpRequest, approval_id) -> HttpResponse:
 
 
 @login_required
+@rate_limit("approval_decide")
 def approval_decide(request: HttpRequest, approval_id) -> HttpResponse:
     ctx, redirect_resp = _membership_or_redirect(request)
     if redirect_resp is not None:

@@ -5,9 +5,16 @@
 {% block content %}
 <section class="block">
   <header class="block__header">
+    <span class="section-marker section-marker--accent">01 / 03 · plan</span>
     <h2 class="block__title">Start a new chat</h2>
     <a href="{% url 'llm:list' %}" class="link link--mono">← all chats</a>
   </header>
+
+  <nav class="tab-bar" aria-label="entry mode">
+    <a href="{% url 'mcp:catalog' %}" class="tab-bar__tab">▤ Manual</a>
+    <a href="{% url 'llm:new' %}" class="tab-bar__tab is-active">⌘ Chat <span class="badge badge--mono">selected</span></a>
+    <a href="{% url 'playbooks:list' %}" class="tab-bar__tab">▦ Playbook</a>
+  </nav>
 
   <form method="post" class="form form--card">
     {% csrf_token %}

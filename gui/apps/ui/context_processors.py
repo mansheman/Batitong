@@ -40,4 +40,16 @@ def batitong_context(request: HttpRequest) -> dict:
         "active_workspace": getattr(request, "workspace", None),
         "active_membership": getattr(request, "membership", None),
         "pending_approvals_count": _pending_approvals_count(request),
+        "RATELIMIT_ENABLE": getattr(settings, "RATELIMIT_ENABLE", False),
     }
+
+
+def rate_limit_context(request: HttpRequest) -> dict:
+    """Expose ``rate_limited`` to every template (None on non-throttled requests).
+
+    The middleware sets ``request.rate_limited`` to a dict like
+    ``{"bucket": "...", "scope": "...", "retry_after": 60}`` only when the
+    request was actually throttled.
+    """
+
+    return {"rate_limited": getattr(request, "rate_limited", None)}
