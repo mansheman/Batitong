@@ -798,3 +798,303 @@ textarea.input { resize: vertical; min-height: 80px; }
 .run-banner__status--failed { color: var(--err); }
 .run-banner__status--awaiting { color: #fde68a; }
 .run-banner__status--cancelled { color: var(--text-dim); }
+
+/* =============================================================================
+ * PHASE 2C — design refresh ala pentestai.xyz
+ * Hero band, section markers, tab bar, attack-chain preview, comparison block,
+ * rate-limit banner, kbd chips. Tokens added below; components follow.
+ * ========================================================================== */
+
+:root {
+  --accent-red: #ff4d6d;
+  --accent-red-soft: rgba(255, 77, 109, 0.12);
+  --gradient-hero: linear-gradient(135deg, #111111 0%, #0e0e0e 45%, #1a0a0e 100%);
+  --display-1: clamp(36px, 5vw, 48px);
+  --display-2: clamp(28px, 4vw, 36px);
+  --kbd-bg: #1d1d1d;
+  --kbd-border: #2c2c2c;
+}
+
+/* ----- Hero band ----------------------------------------------------------- */
+.hero-band {
+  background: var(--gradient-hero);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--s-6) var(--s-6);
+  margin-bottom: var(--s-5);
+  position: relative;
+  overflow: hidden;
+}
+.hero-band__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: var(--s-6);
+  align-items: center;
+}
+@media (max-width: 920px) {
+  .hero-band__grid { grid-template-columns: 1fr; }
+}
+.hero-band__mark {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: var(--s-3);
+}
+.hero-band__title {
+  font-size: var(--display-1);
+  line-height: 1.05;
+  font-weight: 800;
+  margin: 0 0 var(--s-4) 0;
+  letter-spacing: -0.02em;
+}
+.hero-band__title em {
+  font-style: normal;
+  color: var(--accent);
+  border-bottom: 1px dashed var(--accent);
+}
+.hero-band__sub {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0 0 var(--s-5) 0;
+  max-width: 60ch;
+}
+.hero-band__ctas {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.hero-band__side {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.hero-band__side-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-2);
+}
+.hero-band__side-key { color: var(--text-dim); }
+.hero-band__side-val { color: var(--text); }
+
+/* ----- Section marker (01 / 04 ala pentestai) ----------------------------- */
+.section-marker {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-2);
+}
+.section-marker--accent { color: var(--accent); border-color: var(--accent); }
+
+/* ----- Tab bar (Manual / Chat / Playbook) --------------------------------- */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--s-5);
+  list-style: none;
+  padding: 0;
+}
+.tab-bar__tab {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: var(--s-3) var(--s-4);
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: color 120ms ease, border-color 120ms ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.tab-bar__tab:hover { color: var(--text); }
+.tab-bar__tab.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tab-bar__tab .badge { font-size: 10px; }
+
+/* ----- Attack-chain preview (static SVG strip on dashboard) --------------- */
+.chain-preview {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--s-5) var(--s-5);
+  margin: var(--s-5) 0;
+  position: relative;
+}
+.chain-preview__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+  flex-wrap: wrap;
+}
+.chain-preview__title { font-size: 16px; margin: 0; }
+.chain-preview__strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s-3);
+  align-items: stretch;
+}
+@media (max-width: 760px) {
+  .chain-preview__strip { grid-template-columns: repeat(2, 1fr); }
+}
+.chain-preview__node {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  position: relative;
+}
+.chain-preview__node-ttp { color: var(--accent); font-size: 11px; }
+.chain-preview__node-title { color: var(--text); font-weight: 500; }
+.chain-preview__node-tool { color: var(--text-dim); font-size: 11px; }
+.chain-preview__node-edge {
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 14px;
+  display: none;
+}
+@media (min-width: 761px) {
+  .chain-preview__node:not(:last-child) .chain-preview__node-edge { display: block; }
+}
+.chain-preview__foot {
+  margin-top: var(--s-4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ----- Comparison block (before / after) ---------------------------------- */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+  margin: var(--s-5) 0;
+}
+@media (max-width: 760px) {
+  .compare { grid-template-columns: 1fr; }
+}
+.compare__col {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+}
+.compare__col--before { opacity: 0.85; }
+.compare__col--after { border-color: var(--accent); }
+.compare__title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--s-3);
+}
+.compare__col--after .compare__title { color: var(--accent); }
+.compare__body { font-size: 13px; line-height: 1.55; color: var(--text-muted); margin: 0; }
+.compare__list { margin: var(--s-2) 0 0 0; padding-left: var(--s-4); font-size: 13px; color: var(--text-muted); }
+.compare__list li { margin: 2px 0; }
+
+/* ----- Rate-limit banner (sticky top) ------------------------------------- */
+.rate-banner {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-4);
+  background: var(--accent-red-soft);
+  border-bottom: 1px solid var(--accent-red);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.rate-banner__icon { color: var(--accent-red); font-size: 14px; }
+.rate-banner__title { color: var(--text); }
+.rate-banner__title code { background: var(--bg-3); padding: 1px 6px; border-radius: 4px; }
+.rate-banner__hint { color: var(--text-muted); }
+.rate-banner__hint strong { color: var(--accent); }
+.rate-banner__link {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  border-bottom: 1px dashed var(--accent);
+}
+.rate-banner__close {
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 6px;
+}
+.rate-banner__close:hover { color: var(--err); }
+
+/* ----- Inline kbd chip ---------------------------------------------------- */
+.kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  margin: 0 1px;
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+/* ----- Rate-limits table (Settings card) ---------------------------------- */
+.rate-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.rate-table th,
+.rate-table td {
+  text-align: left;
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--line);
+}
+.rate-table th {
+  color: var(--text-dim);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.rate-table td .badge { font-size: 10px; }
+.rate-table td.rate-table__cell--off { color: var(--text-dim); }

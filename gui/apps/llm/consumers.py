@@ -9,6 +9,8 @@ from typing import Any
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
+from apps.ui.ratelimit import WSRateLimiter
+
 from .models import ChatSession
 from .tasks import chat_group
 
@@ -48,6 +50,23 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_discard(group, self.channel_name)
 
     async def receive_json(self, content: Any, **kwargs) -> None:
+        user = self.scope.get("user")
+        user_id = getattr(user, "pk", None)
+        if user_id is not None:
+            allowed, retry_after = WSRateLimiter.check("chat_ws", str(user_id))
+            if not allowed:
+                # Do NOT close the socket — keep any in-flight assistant
+                # stream alive; the client renders a banner and stops sending.
+                await self.send_json(
+                    {
+                        "event": "rate_limit",
+                        "bucket": "chat_ws",
+                        "scope": "user",
+                        "retry_after": retry_after,
+                    }
+                )
+                return
+
         if isinstance(content, dict) and content.get("type") == "ping":
             await self.send_json({"event": "pong"})
 

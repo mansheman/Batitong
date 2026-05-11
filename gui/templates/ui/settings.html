@@ -183,7 +183,7 @@
   </article>
 
   <article class="card card--full">
-    <span class="card__num">07 / 07</span>
+    <span class="card__num">07 / 08</span>
     <h3 class="card__title">External API keys</h3>
     <p class="card__body">
       <strong class="metric">{{ creds_count|default:0 }}</strong>
@@ -194,6 +194,52 @@
     {% else %}
       <span class="muted">Lead/Owner role required to manage credentials.</span>
     {% endif %}
+  </article>
+
+  <article class="card card--full" id="rate-limits">
+    <span class="card__num">08 / 08</span>
+    <h3 class="card__title">Rate limits</h3>
+    <p class="card__body">
+      <span class="muted">Engine status:</span>
+      {% if rate_limit_enabled %}
+        <span class="badge badge--ok">enabled</span>
+      {% else %}
+        <span class="badge badge--mono">disabled · dev mode</span>
+      {% endif %}
+      <span class="field__hint">
+        Set <code class="code">RATELIMIT_ENABLE=1</code> in <code class="code">.env</code> to enforce
+        these limits in production. Buckets stack: every request that hits a bucket must pass
+        both <em>user/IP</em> and <em>workspace</em> quota.
+      </span>
+    </p>
+    <table class="rate-table">
+      <thead>
+        <tr>
+          <th>bucket</th>
+          <th>per user</th>
+          <th>per workspace</th>
+          <th>per IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rate_limit_rows %}
+        <tr>
+          <td><code class="code">{{ row.bucket }}</code></td>
+          <td{% if not row.user %} class="rate-table__cell--off"{% endif %}>
+            {% if row.user %}<span class="badge badge--mono">{{ row.user }}</span>{% else %}–{% endif %}
+          </td>
+          <td{% if not row.workspace %} class="rate-table__cell--off"{% endif %}>
+            {% if row.workspace %}<span class="badge badge--mono">{{ row.workspace }}</span>{% else %}–{% endif %}
+          </td>
+          <td{% if not row.ip %} class="rate-table__cell--off"{% endif %}>
+            {% if row.ip %}<span class="badge badge--mono">{{ row.ip }}</span>{% else %}–{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="table__empty">No rate-limit buckets configured.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </article>
 </section>
 {% endblock %}

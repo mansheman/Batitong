@@ -78,6 +78,8 @@
     {% endif %}
 
     <main class="main {% if not user.is_authenticated %}main--full{% endif %}">
+      {% include "ui/_rate_limit_banner.html" %}
+
       {% if user.is_authenticated %}
       <header class="topbar">
         <div class="topbar__left">
@@ -97,6 +99,9 @@
           {% endif %}
           {% if active_workspace and active_workspace.privacy_mode %}
             <span class="badge badge--mono" title="LLM router forced to local providers">privacy:on</span>
+          {% endif %}
+          {% if RATELIMIT_ENABLE %}
+            <span class="badge badge--mono" title="rate limiting active">rate:on</span>
           {% endif %}
           <span class="badge badge--live">live</span>
           <span class="badge badge--mono">{{ BATITONG_PROJECT_NAME }}</span>

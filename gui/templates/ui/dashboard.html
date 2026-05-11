@@ -4,20 +4,98 @@
 {% block crumb %}~/dashboard{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <h1 class="hero__title">
-    Run, observe, and report —<br />
-    one console for every MCP tool.
-  </h1>
-  <p class="hero__sub">
-    {{ total_tools }} MCP tools wired up across Kali MCP and HexStrike-AI.
-    Plan a chain, fire a single command, or chat with the planner.
-  </p>
-  <div class="hero__actions">
-    <a href="{% url 'llm:new' %}" class="btn btn--primary">⌘ start chat</a>
-    <a href="{% url 'mcp:catalog' %}" class="btn btn--ghost">→ browse tool catalog</a>
-    <a href="{% url 'engagements:list' %}" class="btn btn--ghost">▶ engagements</a>
+<section class="hero-band" aria-labelledby="dash-hero">
+  <div class="hero-band__grid">
+    <div>
+      <p class="hero-band__mark">// batitong · MCP console</p>
+      <h1 class="hero-band__title" id="dash-hero">
+        Run, observe, and report — <em>one console</em> for every MCP tool.
+      </h1>
+      <p class="hero-band__sub">
+        {{ total_tools }} MCP tools wired up across Kali MCP and HexStrike-AI.
+        Plan a chain, fire a single command, or chat with the planner — keystroke
+        <span class="kbd">⌘</span><span class="kbd">K</span> jumps to chat.
+      </p>
+      <div class="hero-band__ctas">
+        <a href="{% url 'llm:new' %}" class="btn btn--primary">⌘ start chat</a>
+        <a href="{% url 'playbooks:list' %}" class="btn btn--ghost">▦ run a playbook</a>
+        <a href="{% url 'mcp:catalog' %}" class="btn btn--ghost">→ tool catalog</a>
+      </div>
+    </div>
+    <aside class="hero-band__side" aria-label="environment status">
+      <div class="hero-band__side-row">
+        <span class="hero-band__side-key">tools</span>
+        <span class="hero-band__side-val">{{ total_tools }} ready</span>
+      </div>
+      <div class="hero-band__side-row">
+        <span class="hero-band__side-key">active</span>
+        <span class="hero-band__side-val">{{ active_count }} engagement{{ active_count|pluralize }}</span>
+      </div>
+      <div class="hero-band__side-row">
+        <span class="hero-band__side-key">approvals</span>
+        <span class="hero-band__side-val">{{ pending_approvals_count|default:0 }} pending</span>
+      </div>
+      <div class="hero-band__side-row">
+        <span class="hero-band__side-key">privacy</span>
+        {% if active_workspace and active_workspace.privacy_mode %}
+          <span class="hero-band__side-val">on · local LLM</span>
+        {% else %}
+          <span class="hero-band__side-val">off · cloud allowed</span>
+        {% endif %}
+      </div>
+      <div class="hero-band__side-row">
+        <span class="hero-band__side-key">rate-limit</span>
+        {% if RATELIMIT_ENABLE %}
+          <span class="hero-band__side-val">on · see settings</span>
+        {% else %}
+          <span class="hero-band__side-val">off · dev mode</span>
+        {% endif %}
+      </div>
+    </aside>
   </div>
+</section>
+
+<section class="chain-preview" aria-labelledby="chain-preview-title">
+  <div class="chain-preview__head">
+    <span class="section-marker section-marker--accent">attack-chain · preview</span>
+    <h2 class="chain-preview__title" id="chain-preview-title">Sample attack chain</h2>
+    <span class="badge badge--mono">phase 3 replaces this with a live cytoscape graph</span>
+  </div>
+  <div class="chain-preview__strip" aria-hidden="false">
+    <div class="chain-preview__node">
+      <span class="chain-preview__node-ttp">T1595</span>
+      <span class="chain-preview__node-title">Active Scanning</span>
+      <span class="chain-preview__node-tool">nmap</span>
+      <span class="chain-preview__node-edge">→</span>
+    </div>
+    <div class="chain-preview__node">
+      <span class="chain-preview__node-ttp">T1190</span>
+      <span class="chain-preview__node-title">Exploit Public-Facing App</span>
+      <span class="chain-preview__node-tool">nikto</span>
+      <span class="chain-preview__node-edge">→</span>
+    </div>
+    <div class="chain-preview__node">
+      <span class="chain-preview__node-ttp">T1059.004</span>
+      <span class="chain-preview__node-title">Unix Shell</span>
+      <span class="chain-preview__node-tool">msfconsole</span>
+      <span class="chain-preview__node-edge">→</span>
+    </div>
+    <div class="chain-preview__node">
+      <span class="chain-preview__node-ttp">T1083</span>
+      <span class="chain-preview__node-title">File &amp; Directory Discovery</span>
+      <span class="chain-preview__node-tool">linpeas</span>
+      <span class="chain-preview__node-edge">→</span>
+    </div>
+    <div class="chain-preview__node">
+      <span class="chain-preview__node-ttp">T1567</span>
+      <span class="chain-preview__node-title">Exfil to Web Service</span>
+      <span class="chain-preview__node-tool">curl</span>
+    </div>
+  </div>
+  <p class="chain-preview__foot">
+    Static illustration of what an end-to-end run looks like — Phase 3 will render this
+    from real <code class="code">PlaybookRunStep</code> + <code class="code">Finding</code> data.
+  </p>
 </section>
 
 <section class="grid grid--3">

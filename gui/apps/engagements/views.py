@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
+from apps.ui.ratelimit import rate_limit
+
 from .models import Engagement
 
 
@@ -27,6 +29,7 @@ def engagement_list(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+@rate_limit("engagement_start")
 def engagement_detail(request: HttpRequest, engagement_id) -> HttpResponse:
     workspace = getattr(request, "workspace", None)
     engagement = get_object_or_404(

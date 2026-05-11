@@ -12,6 +12,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.mitre.models import MitreTactic
+from apps.ui.ratelimit import rate_limit
 
 from .forms import PlaybookForm, PlaybookStepForm, StartRunForm
 from .models import Playbook, PlaybookRun, PlaybookStep
@@ -175,6 +176,7 @@ def edit_view(request: HttpRequest, slug: str) -> HttpResponse:
 
 
 @login_required
+@rate_limit("playbook_start")
 def start_run_view(request: HttpRequest, slug: str) -> HttpResponse:
     workspace = getattr(request, "workspace", None)
     membership = getattr(request, "membership", None)

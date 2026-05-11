@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}rate limited{% endblock %}
+{% block crumb %}~/rate-limited{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <span class="section-marker">429 · slow down</span>
+    <h2 class="block__title">You hit a rate limit.</h2>
+  </header>
+  <article class="card card--full">
+    <p class="card__body">
+      The
+      <code class="code">{{ rate_limited.bucket }}</code>
+      bucket is full for the <code class="code">{{ rate_limited.scope }}</code> scope.
+      This is a defensive limit on Batitong's LLM and MCP queues — try again in
+      <strong>{{ rate_limited.retry_after }} s</strong>.
+    </p>
+    <p class="muted">
+      Looking for the configured policy? See the
+      <a class="link link--mono" href="{% url 'ui:settings' %}#rate-limits">Rate limits</a>
+      card on Settings.
+    </p>
+    <div class="form-grid__actions">
+      <a class="btn btn--ghost" href="javascript:history.back()">← go back</a>
+      <a class="btn btn--ghost" href="{% url 'ui:dashboard' %}">dashboard →</a>
+    </div>
+  </article>
+</section>
+{% endblock %}

@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.ui.ratelimit import rate_limit
+
 from .forms import CredentialForm
 from .models import WorkspaceCredential
 from .seed import CREDENTIAL_SPECS, get_spec
@@ -113,6 +115,7 @@ def credential_edit(request: HttpRequest, cred_id) -> HttpResponse:
 
 
 @login_required
+@rate_limit("credential_test")
 def credential_test(request: HttpRequest, cred_id) -> HttpResponse:
     workspace, _membership, err = _require_manager(request)
     if err is not None:

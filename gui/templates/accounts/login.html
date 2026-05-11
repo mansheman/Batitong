@@ -3,50 +3,82 @@
 {% block title %}login{% endblock %}
 
 {% block content %}
-<div class="auth">
-  <div class="auth__card">
-    <div class="auth__brand">
-      <img src="{% static 'img/logo.svg' %}" alt="batitong" class="auth__logo" />
-      <h1 class="auth__title">batitong</h1>
-      <p class="auth__sub">MCP-driven offensive security console</p>
+<section class="hero-band" aria-labelledby="login-hero">
+  <div class="hero-band__grid">
+    <div>
+      <p class="hero-band__mark">// batitong · sign in</p>
+      <h1 class="hero-band__title" id="login-hero">
+        Operate <em>every MCP tool</em> from one terminal-first console.
+      </h1>
+      <p class="hero-band__sub">
+        Kali MCP, HexStrike-AI, Ollama, GitHub Models, OpenRouter and GROQ — wired together
+        with a strict approval gate, per-workspace credentials, and MITRE ATT&amp;CK-aware
+        playbooks.
+      </p>
+
+      <div class="compare" aria-label="before-after">
+        <article class="compare__col compare__col--before">
+          <p class="compare__title">// before</p>
+          <ul class="compare__list">
+            <li>tmux split with 6 panes of nmap / sqlmap / msfconsole</li>
+            <li>raw API keys pasted in shell history</li>
+            <li>findings buried in scrollback</li>
+            <li>no audit trail when a tool overran scope</li>
+          </ul>
+        </article>
+        <article class="compare__col compare__col--after">
+          <p class="compare__title">// with batitong</p>
+          <ul class="compare__list">
+            <li>one chat — model picks the tool, you click ▶</li>
+            <li>Fernet vault per workspace, scoped to one tenant</li>
+            <li>findings → MITRE TTP → report draft → PDF</li>
+            <li>approval gate &amp; rate limits protect cloud quota</li>
+          </ul>
+        </article>
+      </div>
     </div>
 
-    <form method="post" class="auth__form">
-      {% csrf_token %}
-      {% if error %}
-        <div class="alert alert--err">{{ error }}</div>
-      {% endif %}
-      <label class="field">
-        <span class="field__label">username</span>
-        <input
-          name="username"
-          type="text"
-          autocomplete="username"
-          required
-          autofocus
-          class="input input--mono"
-        />
-      </label>
-      <label class="field">
-        <span class="field__label">password</span>
-        <input
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          required
-          class="input input--mono"
-        />
-      </label>
-      <button type="submit" class="btn btn--primary btn--block">→ sign in</button>
-    </form>
-
-    <div class="auth__hints">
-      <span class="badge">v{{ BATITONG_VERSION }}</span>
-      <span class="badge badge--mono">open source</span>
-      <span class="badge badge--mono">MIT licensed</span>
-    </div>
-
-    <pre class="auth__cli"><span class="prompt__cwd">~/batitong</span> · ./batitong start --target acme.corp</pre>
+    <aside class="hero-band__side" aria-label="login form">
+      <div class="auth__brand">
+        <img src="{% static 'img/logo.svg' %}" alt="batitong" class="auth__logo" />
+        <h2 class="auth__title">batitong</h2>
+        <p class="auth__sub">MCP-driven offensive security console</p>
+      </div>
+      <form method="post" class="auth__form">
+        {% csrf_token %}
+        {% if error %}
+          <div class="alert alert--err">{{ error }}</div>
+        {% endif %}
+        <label class="field">
+          <span class="field__label">username</span>
+          <input
+            name="username"
+            type="text"
+            autocomplete="username"
+            required
+            autofocus
+            class="input input--mono"
+          />
+        </label>
+        <label class="field">
+          <span class="field__label">password</span>
+          <input
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            class="input input--mono"
+          />
+        </label>
+        <button type="submit" class="btn btn--primary btn--block">→ sign in</button>
+      </form>
+      <div class="auth__hints">
+        <span class="badge">v{{ BATITONG_VERSION }}</span>
+        <span class="badge badge--mono">open source</span>
+        <span class="badge badge--mono">MIT licensed</span>
+      </div>
+      <pre class="auth__cli"><span class="prompt__cwd">~/batitong</span> · ./batitong start --target acme.corp</pre>
+    </aside>
   </div>
-</div>
+</section>
 {% endblock %}
