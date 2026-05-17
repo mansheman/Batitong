@@ -1,4 +1,4 @@
-"""WebSocket consumer that pushes approval events to Owner/Lead clients."""
+"""WebSocket consumer that pushes approval events to Admin clients."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class ApprovalConsumer(AsyncJsonWebsocketConsumer):
-    """One WebSocket per Owner/Lead session — receives all approval events.
+    """One WebSocket per Admin session — receives all approval events.
 
     The browser uses this to power the topbar lonceng badge with live counts
     and to refresh the inbox when a new request lands.

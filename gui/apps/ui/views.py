@@ -97,7 +97,7 @@ def settings_view(request: HttpRequest) -> HttpResponse:
             messages.error(request, "No active workspace.")
             return redirect("ui:settings")
         if not _can_manage_workspace(request):
-            messages.error(request, "Only Lead/Owner roles can change router settings.")
+            messages.error(request, "Only Admin role can change router settings.")
             return redirect("ui:settings")
         action = request.POST.get("action", "")
         if action == "router":

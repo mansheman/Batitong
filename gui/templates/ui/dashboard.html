@@ -128,7 +128,7 @@
     {% if active_membership and active_membership.can_approve_high_risk %}
       <a href="{% url 'approvals:list' %}" class="card__cta">open inbox →</a>
     {% else %}
-      <span class="muted">Lead/Owner role required to review.</span>
+      <span class="muted">Admin role required to review.</span>
     {% endif %}
   </div>
 

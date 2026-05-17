@@ -1,4 +1,4 @@
-"""Views for managing per-workspace credentials (Lead/Owner only)."""
+"""Views for managing per-workspace credentials (Admin only)."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def _require_manager(request: HttpRequest):
     workspace = getattr(request, "workspace", None)
     if workspace is None or membership is None:
         return None, None, "no workspace"
-    if not membership.can_approve_high_risk:  # owner or lead only
+    if not membership.can_approve_high_risk:  # admin only
         return None, None, "forbidden"
     return workspace, membership, None
 
@@ -35,7 +35,7 @@ def credential_list(request: HttpRequest) -> HttpResponse:
     if err == "no workspace":
         return render(request, "ui/no_workspace.html", status=403)
     if err == "forbidden":
-        # Viewers / Operators see a read-only stub: count + the env vars expected.
+        # Regular users see a read-only stub: count + the env vars expected.
         creds = (
             WorkspaceCredential.objects.filter(workspace=getattr(request, "workspace", None))
             if getattr(request, "workspace", None)
@@ -66,7 +66,7 @@ def credential_list(request: HttpRequest) -> HttpResponse:
 def credential_create(request: HttpRequest) -> HttpResponse:
     workspace, _membership, err = _require_manager(request)
     if err is not None:
-        messages.error(request, "Only Lead/Owner roles can manage credentials.")
+        messages.error(request, "Only Admin role can manage credentials.")
         return redirect("credentials:list")
 
     if request.method == "POST":
@@ -90,7 +90,7 @@ def credential_create(request: HttpRequest) -> HttpResponse:
 def credential_edit(request: HttpRequest, cred_id) -> HttpResponse:
     workspace, _membership, err = _require_manager(request)
     if err is not None:
-        messages.error(request, "Only Lead/Owner roles can manage credentials.")
+        messages.error(request, "Only Admin role can manage credentials.")
         return redirect("credentials:list")
     cred = get_object_or_404(WorkspaceCredential, pk=cred_id, workspace=workspace)
     if request.method == "POST":
@@ -119,7 +119,7 @@ def credential_edit(request: HttpRequest, cred_id) -> HttpResponse:
 def credential_test(request: HttpRequest, cred_id) -> HttpResponse:
     workspace, _membership, err = _require_manager(request)
     if err is not None:
-        messages.error(request, "Only Lead/Owner roles can manage credentials.")
+        messages.error(request, "Only Admin role can manage credentials.")
         return redirect("credentials:list")
     cred = get_object_or_404(WorkspaceCredential, pk=cred_id, workspace=workspace)
     ok, msg = test_credential(cred)
@@ -134,7 +134,7 @@ def credential_test(request: HttpRequest, cred_id) -> HttpResponse:
 def credential_delete(request: HttpRequest, cred_id) -> HttpResponse:
     workspace, _membership, err = _require_manager(request)
     if err is not None:
-        messages.error(request, "Only Lead/Owner roles can manage credentials.")
+        messages.error(request, "Only Admin role can manage credentials.")
         return redirect("credentials:list")
     cred = get_object_or_404(WorkspaceCredential, pk=cred_id, workspace=workspace)
     if request.method == "POST":

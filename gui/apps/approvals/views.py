@@ -19,7 +19,7 @@ def _membership_or_redirect(request: HttpRequest):
     if workspace is None:
         return None, render(request, "ui/no_workspace.html", status=403)
     if membership is None or not membership.can_approve_high_risk:
-        messages.error(request, "Only Lead/Owner roles can review approvals.")
+        messages.error(request, "Only Admin role can review approvals.")
         return None, redirect("ui:dashboard")
     return (workspace, membership), None
 

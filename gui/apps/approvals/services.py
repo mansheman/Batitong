@@ -3,7 +3,7 @@
 Risk policy (sourced from ``MCPTool.risk_level``):
   * ``low`` / ``med``: run immediately
   * ``high`` / ``crit``: hold execution, create an ``ApprovalRequest``,
-    and notify Owner/Lead members of the workspace via the channel layer.
+    and notify Admin members of the workspace via the channel layer.
 """
 
 from __future__ import annotations
@@ -119,7 +119,7 @@ def decide(
         return False, "requester cannot approve their own request (4-eyes)"
     membership = Membership.objects.filter(user=actor, workspace=approval.workspace).first()
     if membership is None or not membership.can_approve_high_risk:
-        return False, "insufficient role (Lead/Owner only)"
+        return False, "insufficient role (Admin only)"
 
     approval.status = (
         ApprovalRequest.Status.APPROVED if approve else ApprovalRequest.Status.REJECTED

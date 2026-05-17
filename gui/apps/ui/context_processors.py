@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def _pending_approvals_count(request: HttpRequest) -> int:
     """Return how many pending approvals the topbar bell should advertise.
 
-    Owners/Leads see the workspace-wide count; everyone else sees ``0``.
+    Admins see the workspace-wide count; everyone else sees ``0``.
     Importing inside the function avoids triggering app-loading during
     Django's settings import.
     """

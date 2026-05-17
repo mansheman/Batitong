@@ -44,5 +44,5 @@ def membership(db, workspace, user):
     return Membership.objects.create(
         user=user,
         workspace=workspace,
-        role=Membership.Role.OPERATOR,
+        role=Membership.Role.USER,
     )

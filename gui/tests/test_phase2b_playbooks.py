@@ -642,7 +642,7 @@ def test_t18_playbooks_list_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_t19_playbooks_list_renders_for_operator(client, user, membership, builtin_playbook):
+def test_t19_playbooks_list_renders_for_user(client, user, membership, builtin_playbook):
     client.force_login(user)
     resp = client.get(reverse("playbooks:list"))
     assert resp.status_code == 200
@@ -650,21 +650,21 @@ def test_t19_playbooks_list_renders_for_operator(client, user, membership, built
 
 
 @pytest.mark.django_db
-def test_t20_only_lead_owner_can_open_new_playbook(client, user, membership):
-    """T20: Operator role can NOT open the new-playbook form."""
+def test_t20_only_admin_can_open_new_playbook(client, user, membership):
+    """T20: A regular User role can NOT open the new-playbook form."""
     client.force_login(user)
     resp = client.get(reverse("playbooks:new"), follow=True)
     # follows redirect back to list with an error message
     assert resp.status_code == 200
-    assert any("Lead/Owner" in str(m) for m in resp.context["messages"])
+    assert any("Admin" in str(m) for m in resp.context["messages"])
 
 
 @pytest.mark.django_db
-def test_t21_lead_can_open_new_playbook(client, user, membership):
-    """T21: Lead can open the new-playbook form."""
+def test_t21_admin_can_open_new_playbook(client, user, membership):
+    """T21: Admin can open the new-playbook form."""
     from apps.accounts.models import Membership
 
-    membership.role = Membership.Role.LEAD
+    membership.role = Membership.Role.ADMIN
     membership.save()
     client.force_login(user)
     resp = client.get(reverse("playbooks:new"))

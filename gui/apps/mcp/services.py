@@ -170,7 +170,7 @@ def _upsert_tools(
             "schema": d.schema,
             "is_available": True,
         }
-        # Preserve manual overrides — Lead/Owner who set ``risk_source=manual``
+        # Preserve manual overrides — Admins who set ``risk_source=manual``
         # via the admin shouldn't be silently overwritten by the next sync.
         if existing is None or existing.risk_source != MCPTool.RiskSource.MANUAL:
             defaults["risk_level"] = risk
