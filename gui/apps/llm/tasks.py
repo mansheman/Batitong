@@ -283,7 +283,7 @@ def run_chat_turn(self, session_id: str) -> dict[str, Any]:
                             execution=execution,
                             approval=approval,
                             content=(
-                                f"Awaiting Lead/Owner approval for "
+                                f"Awaiting Admin approval for "
                                 f"{tool.name} (risk: {tool.risk_level}). "
                                 "Reply will resume after a reviewer decides."
                             ),

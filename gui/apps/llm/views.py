@@ -40,7 +40,7 @@ def chat_new(request: HttpRequest) -> HttpResponse:
     workspace = getattr(request, "workspace", None)
     membership = getattr(request, "membership", None)
     if workspace is None or membership is None or not membership.can_run_tools:
-        messages.error(request, "You need at least Operator role to start a chat.")
+        messages.error(request, "You need an active workspace membership to start a chat.")
         return redirect("llm:list")
 
     if request.method == "POST":

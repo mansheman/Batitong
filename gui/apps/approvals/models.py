@@ -13,7 +13,7 @@ class ApprovalRequest(models.Model):
     """A pending review for a high/critical tool call.
 
     Tied 1:1 to a ``ToolExecution`` that is in ``AWAITING_APPROVAL`` status.
-    Anyone in the workspace with ``can_approve_high_risk`` (Owner/Lead) may
+    Anyone in the workspace with ``can_approve_high_risk`` (Admin) may
     decide. The 4-eyes rule is enforced in ``services.decide``: the requester
     is **never** allowed to self-approve.
     """

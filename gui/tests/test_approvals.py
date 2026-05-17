@@ -52,7 +52,7 @@ def tool_low(db, provider):
 @pytest.fixture
 def reviewer(db, workspace):
     bob = User.objects.create_user(username="bob", email="bob@batitong.local", password="x")
-    Membership.objects.create(user=bob, workspace=workspace, role=Membership.Role.LEAD)
+    Membership.objects.create(user=bob, workspace=workspace, role=Membership.Role.ADMIN)
     return bob
 
 
@@ -103,7 +103,7 @@ def test_request_approval_sets_status_and_expiry(workspace, user, membership, to
 @pytest.mark.django_db
 def test_4_eyes_blocks_self_approve(workspace, user, membership, tool_high):
     """The user who requested cannot approve their own request."""
-    membership.role = Membership.Role.LEAD
+    membership.role = Membership.Role.ADMIN
     membership.save()
     execution = _make_execution(workspace, user, tool_high)
     approval = request_approval(
@@ -119,16 +119,16 @@ def test_4_eyes_blocks_self_approve(workspace, user, membership, tool_high):
 
 @pytest.mark.django_db
 def test_decide_requires_approver_role(workspace, user, membership, tool_high, reviewer):
-    """A Viewer cannot approve, even if not the requester."""
+    """A regular User cannot approve, even if not the requester."""
     execution = _make_execution(workspace, user, tool_high)
     approval = request_approval(
         execution=execution, requested_by=user, risk_level="high", summary="x"
     )
-    viewer = User.objects.create_user(username="vic", email="vic@b.local", password="x")
-    Membership.objects.create(user=viewer, workspace=workspace, role=Membership.Role.VIEWER)
-    ok, msg = decide(approval, actor=viewer, approve=True)
+    plain_user = User.objects.create_user(username="vic", email="vic@b.local", password="x")
+    Membership.objects.create(user=plain_user, workspace=workspace, role=Membership.Role.USER)
+    ok, msg = decide(approval, actor=plain_user, approve=True)
     assert ok is False
-    assert "role" in msg.lower() or "lead" in msg.lower()
+    assert "role" in msg.lower() or "admin" in msg.lower()
 
 
 @pytest.mark.django_db

@@ -72,7 +72,7 @@ def test_upsert_uses_annotation_when_present(kali_provider):  # noqa: F811
 
 @pytest.mark.django_db
 def test_upsert_preserves_manual_risk_source(kali_provider):  # noqa: F811
-    """Lead/Owner manual overrides (risk_source=manual) survive subsequent syncs."""
+    """Admin manual overrides (risk_source=manual) survive subsequent syncs."""
     MCPTool.objects.create(
         provider=kali_provider,
         name="nmap_scan",

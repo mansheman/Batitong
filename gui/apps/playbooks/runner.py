@@ -335,7 +335,7 @@ def cancel_run(run: PlaybookRun, *, reason: str = "user-cancelled") -> None:
 
 
 def handle_approval_decision(step: PlaybookRunStep, *, approved: bool, note: str = "") -> None:
-    """Called by the approvals signal after a Lead/Owner decision."""
+    """Called by the approvals signal after an Admin decision."""
     execution = step.execution
     if execution is None:
         return

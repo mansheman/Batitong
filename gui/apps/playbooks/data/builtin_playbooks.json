@@ -246,7 +246,7 @@
           "order": 1,
           "tool": "kali:impacket_secretsdump",
           "title": "Impacket secretsdump",
-          "rationale": "Pull SAM/LSA/NTDS hashes (HIGHLY DESTRUCTIVE — needs Owner approval).",
+          "rationale": "Pull SAM/LSA/NTDS hashes (HIGHLY DESTRUCTIVE — needs Admin approval).",
           "arg_template": {"target": "{{ target.value }}", "auth_user": "{{ workspace.slug }}\\\\Administrator"}
         }
       ]

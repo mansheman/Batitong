@@ -77,7 +77,7 @@ def parse_risk_from_description(desc: str) -> str:
 
 
 def guess_risk_level(tool_name: str) -> str:
-    """Heuristic classification of tools that should require Lead approval."""
+    """Heuristic classification of tools that should require Admin approval."""
     name = tool_name.lower()
 
     critical = {
@@ -124,7 +124,7 @@ def guess_risk_level(tool_name: str) -> str:
     if name in medium:
         return "med"
     # Unknown tools default to ``med`` so they hit the approval gate by default.
-    # Operators with the explicit allow-list (above) bypass the gate; everything
-    # else gets a human review until a Lead/Owner overrides the level via the
-    # admin or per-workspace ``MCPToolRiskOverride``.
+    # Tools in the explicit allow-list (above) bypass the gate; everything
+    # else gets a human review until an Admin overrides the level via the
+    # admin console or per-workspace ``MCPToolRiskOverride``.
     return "med"

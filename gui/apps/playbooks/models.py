@@ -7,7 +7,7 @@ underlying ``ToolExecution`` rows from ``apps.engagements``.
 
 Built-in playbooks have ``workspace=None`` and ``is_built_in=True``. They
 are read-only and shared across all workspaces. Custom playbooks have
-``workspace`` set and are editable by Lead/Owner of that workspace.
+``workspace`` set and are editable by Admin members of that workspace.
 """
 
 from __future__ import annotations

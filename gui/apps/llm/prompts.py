@@ -14,7 +14,7 @@ DEFAULT_SYSTEM_PROMPT = (
     "    calling a tool.\n"
     "  - For destructive or noisy actions (risk_level=high or crit) "
     "    DESCRIBE the impact in plain English first; the platform will ask "
-    "    a Lead/Owner for approval before the call actually runs.\n"
+    "    an Admin for approval before the call actually runs.\n"
     "  - When you need to inspect a target, prefer reconnaissance "
     "    (TA0043) tools first.\n"
     "  - When the operator just asks a question, answer in concise "

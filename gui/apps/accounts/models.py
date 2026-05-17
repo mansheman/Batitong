@@ -55,13 +55,23 @@ class Workspace(models.Model):
 
 
 class Membership(models.Model):
-    """Links a user to a workspace with a role."""
+    """Links a user to a workspace with a role.
+
+    Phase 2D collapsed the 4-role enum (owner/lead/operator/viewer) into a
+    minimal 2-role model (admin/user):
+
+    * ``admin`` — workspace administrator. Can manage workspace settings,
+      approve high-risk tool executions, and run tools. Combines the
+      capabilities that the legacy ``owner`` and ``lead`` roles had.
+    * ``user`` — regular member. Can run tools but cannot approve
+      high-risk operations or manage workspace settings. Replaces the
+      legacy ``operator`` role and absorbs ``viewer`` (read-only
+      membership is no longer enforced at the role level).
+    """
 
     class Role(models.TextChoices):
-        OWNER = "owner", _("Owner")
-        LEAD = "lead", _("Security Lead")
-        OPERATOR = "operator", _("Operator")
-        VIEWER = "viewer", _("Viewer")
+        ADMIN = "admin", _("Admin")
+        USER = "user", _("User")
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -73,7 +83,7 @@ class Membership(models.Model):
         on_delete=models.CASCADE,
         related_name="memberships",
     )
-    role = models.CharField(max_length=16, choices=Role.choices, default=Role.OPERATOR)
+    role = models.CharField(max_length=16, choices=Role.choices, default=Role.USER)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -85,12 +95,12 @@ class Membership(models.Model):
 
     @property
     def can_run_tools(self) -> bool:
-        return self.role in {self.Role.OWNER, self.Role.LEAD, self.Role.OPERATOR}
+        return self.role in {self.Role.ADMIN, self.Role.USER}
 
     @property
     def can_approve_high_risk(self) -> bool:
-        return self.role in {self.Role.OWNER, self.Role.LEAD}
+        return self.role == self.Role.ADMIN
 
     @property
     def can_manage_workspace(self) -> bool:
-        return self.role == self.Role.OWNER
+        return self.role == self.Role.ADMIN

@@ -179,8 +179,8 @@ def test_t9_two_users_share_workspace_quota(client, workspace):
     bob = user_model.objects.create_user(
         username="bob-q9", email="bob-q9@batitong.local", password="x"
     )
-    Membership.objects.create(user=alice, workspace=workspace, role=Membership.Role.OPERATOR)
-    Membership.objects.create(user=bob, workspace=workspace, role=Membership.Role.OPERATOR)
+    Membership.objects.create(user=alice, workspace=workspace, role=Membership.Role.USER)
+    Membership.objects.create(user=bob, workspace=workspace, role=Membership.Role.USER)
 
     url = reverse("llm:new")
     client.force_login(alice)
@@ -209,7 +209,7 @@ def test_t15_login_page_still_renders(client):
 
 @pytest.mark.django_db
 def test_t16_dashboard_renders_after_login(client, user, membership):
-    """T16: regression — dashboard renders for an authenticated operator."""
+    """T16: regression — dashboard renders for an authenticated workspace member."""
     client.force_login(user)
     resp = client.get(reverse("ui:dashboard"))
     assert resp.status_code == 200

@@ -85,7 +85,7 @@
         </div>
       </form>
     {% else %}
-      <p class="muted">Lead/Owner role required to change router settings.</p>
+      <p class="muted">Admin role required to change router settings.</p>
     {% endif %}
   </article>
 
@@ -192,7 +192,7 @@
     {% if can_manage %}
       <a href="{% url 'credentials:list' %}" class="card__cta">manage credentials →</a>
     {% else %}
-      <span class="muted">Lead/Owner role required to manage credentials.</span>
+      <span class="muted">Admin role required to manage credentials.</span>
     {% endif %}
   </article>
 

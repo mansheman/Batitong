@@ -79,23 +79,23 @@ def test_seed_includes_github_models_token():
 
 
 @pytest.mark.django_db
-def test_credential_list_requires_lead(client, user, membership):
-    """Operator must NOT be able to manage credentials."""
-    membership.role = Membership.Role.OPERATOR
+def test_credential_list_requires_admin(client, user, membership):
+    """A regular User must NOT be able to manage credentials."""
+    membership.role = Membership.Role.USER
     membership.save()
     client.force_login(user)
     resp = client.get(reverse("credentials:list"))
-    # Read-only stub or 403 — both acceptable, but Operator must NOT see the
-    # 'add credential' form.
+    # Read-only stub or 403 — both acceptable, but a regular User must NOT
+    # see the 'add credential' form.
     assert resp.status_code in (200, 403)
     if resp.status_code == 200:
         body = resp.content.decode()
-        assert "form" not in body.lower() or "lead" in body.lower() or "owner" in body.lower()
+        assert "form" not in body.lower() or "admin" in body.lower()
 
 
 @pytest.mark.django_db
-def test_credential_list_allows_lead(client, user, membership):
-    membership.role = Membership.Role.LEAD
+def test_credential_list_allows_admin(client, user, membership):
+    membership.role = Membership.Role.ADMIN
     membership.save()
     client.force_login(user)
     resp = client.get(reverse("credentials:list"))

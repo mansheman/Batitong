@@ -90,7 +90,7 @@ class MCPTool(models.Model):
         choices=RiskLevel.choices,
         default=RiskLevel.MEDIUM,
         help_text=(
-            "Default to 'med' so unknown tools require Lead/Owner approval. "
+            "Default to 'med' so unknown tools require Admin approval. "
             "Lower the level only after a manual review."
         ),
     )
@@ -156,7 +156,7 @@ class MCPTool(models.Model):
 class MCPToolRiskOverride(models.Model):
     """A workspace-scoped manual override for a tool's risk level.
 
-    Lead / Owner roles can lower or raise the risk classification for a
+    Admin members can lower or raise the risk classification for a
     specific tool inside their workspace without mutating the global
     :class:`MCPTool.risk_level` (which is shared across workspaces).
     """

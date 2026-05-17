@@ -93,7 +93,7 @@ def detail_view(request: HttpRequest, slug: str) -> HttpResponse:
 
 
 def _can_edit(request: HttpRequest, playbook: Playbook) -> bool:
-    """Lead/Owner only, and only on workspace-owned (non-built-in) playbooks."""
+    """Admin only, and only on workspace-owned (non-built-in) playbooks."""
     membership = getattr(request, "membership", None)
     if membership is None:
         return False
@@ -113,7 +113,7 @@ def new_view(request: HttpRequest) -> HttpResponse:
         or membership is None
         or not getattr(membership, "can_approve_high_risk", False)
     ):
-        messages.error(request, "Only Lead/Owner roles can author playbooks.")
+        messages.error(request, "Only Admin role can author playbooks.")
         return redirect("playbooks:list")
 
     if request.method == "POST":
@@ -181,7 +181,7 @@ def start_run_view(request: HttpRequest, slug: str) -> HttpResponse:
     workspace = getattr(request, "workspace", None)
     membership = getattr(request, "membership", None)
     if workspace is None or membership is None or not getattr(membership, "can_run_tools", False):
-        messages.error(request, "You need at least Operator role to start a playbook run.")
+        messages.error(request, "You need an active workspace membership to start a playbook run.")
         return redirect("playbooks:list")
     qs = _visible_playbooks(workspace)
     playbook = get_object_or_404(qs, slug=slug)
@@ -243,7 +243,7 @@ def cancel_run_view(request: HttpRequest, slug: str, run_id: str) -> HttpRespons
     workspace = getattr(request, "workspace", None)
     membership = getattr(request, "membership", None)
     if workspace is None or membership is None or not getattr(membership, "can_run_tools", False):
-        messages.error(request, "Only operators can cancel runs.")
+        messages.error(request, "Only workspace members can cancel runs.")
         return redirect("playbooks:list")
     run = get_object_or_404(PlaybookRun, pk=run_id, workspace=workspace, playbook__slug=slug)
     cancel_run(run, reason=f"cancelled by {request.user.username}")

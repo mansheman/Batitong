@@ -22,9 +22,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     Authorisation rules:
       * the session must belong to the user's active workspace;
-      * any member of that workspace may listen to the chat (so a Lead can
-        watch an Operator's conversation), but only the creator (or
-        Owner/Lead) can post user messages.
+      * any member of that workspace may listen to the chat (so an admin
+        can watch a regular user's conversation), but only the creator (or
+        an admin) can post user messages.
     """
 
     async def connect(self) -> None:
