@@ -10,7 +10,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{% static 'css/batitong.css' %}" />
+  {# app.js MUST load before alpine.min.js so window.navGroups (and other Alpine
+     globals) are defined by the time Alpine evaluates x-data expressions.
+     Alpine 3 auto-starts during script execution when document.readyState is
+     'interactive' (which is the case for deferred scripts), so the order matters. #}
   <script defer src="{% static 'vendor/htmx.min.js' %}"></script>
+  <script defer src="{% static 'js/app.js' %}"></script>
   <script defer src="{% static 'vendor/alpine.min.js' %}"></script>
   {% block head_extra %}{% endblock %}
 </head>
@@ -24,43 +29,104 @@
         <span class="badge badge--mono">v{{ BATITONG_VERSION }}</span>
       </a>
 
-      <nav class="nav">
-        <a href="{% url 'ui:dashboard' %}" class="nav__item {% if request.resolver_match.namespace == 'ui' and request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">
+      {% with ns=request.resolver_match.namespace %}
+      <nav class="nav"
+           x-data="navGroups"
+           data-component="sidebar-nav"
+           data-active-namespace="{{ ns|default:'' }}">
+        <a href="{% url 'ui:dashboard' %}"
+           class="nav__item {% if ns == 'ui' and request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">
           <span class="nav__icon">▤</span><span class="nav__label">Dashboard</span>
         </a>
-        <a href="{% url 'llm:list' %}" class="nav__item {% if request.resolver_match.namespace == 'llm' %}is-active{% endif %}">
-          <span class="nav__icon">⌘</span><span class="nav__label">Chat</span>
-        </a>
-        <a href="{% url 'engagements:list' %}" class="nav__item {% if request.resolver_match.namespace == 'engagements' %}is-active{% endif %}">
-          <span class="nav__icon">▶</span><span class="nav__label">Engagements</span>
-        </a>
-        <a href="{% url 'playbooks:list' %}" class="nav__item {% if request.resolver_match.namespace == 'playbooks' %}is-active{% endif %}">
-          <span class="nav__icon">▦</span><span class="nav__label">Playbooks</span>
-        </a>
-        <a href="{% url 'mitre:matrix' %}" class="nav__item {% if request.resolver_match.namespace == 'mitre' %}is-active{% endif %}">
-          <span class="nav__icon">⊞</span><span class="nav__label">MITRE</span>
-        </a>
-        <a href="{% url 'mcp:catalog' %}" class="nav__item {% if request.resolver_match.namespace == 'mcp' %}is-active{% endif %}">
-          <span class="nav__icon">⚙</span><span class="nav__label">Tool Catalog</span>
-        </a>
-        <a href="{% url 'targets:list' %}" class="nav__item {% if request.resolver_match.namespace == 'targets' %}is-active{% endif %}">
-          <span class="nav__icon">◎</span><span class="nav__label">Targets</span>
-        </a>
+
+        <div class="nav__divider" role="separator" aria-hidden="true"></div>
+
+        <div class="nav__group {% if ns in 'llm engagements playbooks' %}nav__group--has-active{% endif %}"
+             data-group="operate">
+          <button type="button"
+                  class="nav__group__header"
+                  data-group-header="operate"
+                  :aria-expanded="open.operate ? 'true' : 'false'"
+                  @click="toggle('operate')">
+            <span class="nav__group__chevron" x-text="open.operate ? '▾' : '▸'">▾</span>
+            <span class="nav__group__label">Operate</span>
+          </button>
+          <div class="nav__group__body" data-group-body="operate" x-show="open.operate" x-cloak>
+            <a href="{% url 'llm:list' %}" class="nav__item {% if ns == 'llm' %}is-active{% endif %}">
+              <span class="nav__icon">⌘</span><span class="nav__label">Chat</span>
+            </a>
+            <a href="{% url 'engagements:list' %}" class="nav__item {% if ns == 'engagements' %}is-active{% endif %}">
+              <span class="nav__icon">▶</span><span class="nav__label">Engagements</span>
+            </a>
+            <a href="{% url 'playbooks:list' %}" class="nav__item {% if ns == 'playbooks' %}is-active{% endif %}">
+              <span class="nav__icon">▦</span><span class="nav__label">Playbooks</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="nav__divider" role="separator" aria-hidden="true"></div>
+
+        <div class="nav__group {% if ns in 'mitre mcp targets' %}nav__group--has-active{% endif %}"
+             data-group="library">
+          <button type="button"
+                  class="nav__group__header"
+                  data-group-header="library"
+                  :aria-expanded="open.library ? 'true' : 'false'"
+                  @click="toggle('library')">
+            <span class="nav__group__chevron" x-text="open.library ? '▾' : '▸'">▸</span>
+            <span class="nav__group__label">Library</span>
+          </button>
+          <div class="nav__group__body" data-group-body="library" x-show="open.library" x-cloak>
+            <a href="{% url 'mitre:matrix' %}" class="nav__item {% if ns == 'mitre' %}is-active{% endif %}">
+              <span class="nav__icon">⊞</span><span class="nav__label">MITRE</span>
+            </a>
+            <a href="{% url 'mcp:catalog' %}" class="nav__item {% if ns == 'mcp' %}is-active{% endif %}">
+              <span class="nav__icon">⚙</span><span class="nav__label">Tool Catalog</span>
+            </a>
+            <a href="{% url 'targets:list' %}" class="nav__item {% if ns == 'targets' %}is-active{% endif %}">
+              <span class="nav__icon">◎</span><span class="nav__label">Targets</span>
+            </a>
+          </div>
+        </div>
+
         {% if active_membership and active_membership.can_approve_high_risk %}
-        <a href="{% url 'approvals:list' %}" class="nav__item {% if request.resolver_match.namespace == 'approvals' %}is-active{% endif %}">
-          <span class="nav__icon">⚑</span><span class="nav__label">Approvals</span>
-          {% if pending_approvals_count %}
-            <span class="nav__count">{{ pending_approvals_count }}</span>
-          {% endif %}
-        </a>
-        <a href="{% url 'credentials:list' %}" class="nav__item {% if request.resolver_match.namespace == 'credentials' %}is-active{% endif %}">
-          <span class="nav__icon">⌬</span><span class="nav__label">Credentials</span>
-        </a>
+        <div class="nav__divider" role="separator" aria-hidden="true"></div>
+
+        <div class="nav__group {% if ns in 'approvals credentials' %}nav__group--has-active{% endif %}"
+             data-group="workflow">
+          <button type="button"
+                  class="nav__group__header"
+                  data-group-header="workflow"
+                  :aria-expanded="open.workflow ? 'true' : 'false'"
+                  @click="toggle('workflow')">
+            <span class="nav__group__chevron" x-text="open.workflow ? '▾' : '▸'">▸</span>
+            <span class="nav__group__label">Workflow</span>
+            {% if pending_approvals_count %}
+              <span class="nav__group__count" data-component="workflow-count">{{ pending_approvals_count }}</span>
+            {% endif %}
+          </button>
+          <div class="nav__group__body" data-group-body="workflow" x-show="open.workflow" x-cloak>
+            <a href="{% url 'approvals:list' %}" class="nav__item {% if ns == 'approvals' %}is-active{% endif %}">
+              <span class="nav__icon">⚑</span><span class="nav__label">Approvals</span>
+              {% if pending_approvals_count %}
+                <span class="nav__count">{{ pending_approvals_count }}</span>
+              {% endif %}
+            </a>
+            <a href="{% url 'credentials:list' %}" class="nav__item {% if ns == 'credentials' %}is-active{% endif %}">
+              <span class="nav__icon">⌬</span><span class="nav__label">Credentials</span>
+            </a>
+          </div>
+        </div>
         {% endif %}
-        <a href="{% url 'ui:settings' %}" class="nav__item {% if request.resolver_match.namespace == 'ui' and request.resolver_match.url_name == 'settings' %}is-active{% endif %}">
+
+        <div class="nav__divider" role="separator" aria-hidden="true"></div>
+
+        <a href="{% url 'ui:settings' %}"
+           class="nav__item {% if ns == 'ui' and request.resolver_match.url_name == 'settings' %}is-active{% endif %}">
           <span class="nav__icon">⚒</span><span class="nav__label">Settings</span>
         </a>
       </nav>
+      {% endwith %}
 
       <div class="sidebar__footer">
         {% if active_workspace %}
@@ -128,7 +194,6 @@
     </main>
   </div>
 
-  <script src="{% static 'js/app.js' %}" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

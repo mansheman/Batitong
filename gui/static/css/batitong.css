@@ -126,6 +126,62 @@ pre { white-space: pre-wrap; word-break: break-word; }
 .nav__icon { color: var(--accent); width: 18px; text-align: center; }
 .nav__label { font-family: var(--font-mono); font-size: 13px; }
 
+/* Phase 2D — verb-first grouped sidebar (Operate / Library / Workflow) */
+[x-cloak] { display: none !important; }
+.nav__divider {
+  border-top: 1px solid var(--line);
+  margin: var(--s-2) 0;
+}
+.nav__group { display: flex; flex-direction: column; gap: 2px; }
+.nav__group__header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  background: none;
+  border: 0;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border-radius: var(--r-md);
+}
+.nav__group__header:hover { background: var(--bg-2); color: var(--text-muted); }
+.nav__group__header:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+.nav__group__chevron {
+  color: var(--accent);
+  width: 14px;
+  text-align: center;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.nav__group__label { flex: 1; }
+.nav__group__count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: rgba(0, 255, 136, .15);
+  color: var(--accent);
+  border: 1px solid rgba(0, 255, 136, .35);
+  padding: 1px 6px;
+  border-radius: 999px;
+  letter-spacing: 0;
+}
+.nav__group--has-active .nav__group__label { color: var(--text); }
+.nav__group--has-active .nav__group__chevron { color: var(--accent); }
+.nav__group__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: var(--s-2);
+}
+
 .sidebar__footer { margin-top: auto; display: flex; flex-direction: column; gap: var(--s-3); }
 .ws { display: flex; align-items: center; gap: var(--s-2); }
 .ws__label { color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; }

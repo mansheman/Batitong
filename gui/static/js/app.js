@@ -110,9 +110,66 @@
   }
 
   window.liveLog = liveLog;
+
+  /* Phase 2D — verb-first grouped sidebar.
+   * Persists open/collapsed state per group in localStorage and auto-opens
+   * the group that contains the currently active page so the highlighted
+   * link is always visible on first paint. */
+  var NAV_LS_KEY = 'batitong:nav:groups';
+  var NAV_DEFAULT_OPEN = { operate: true, library: false, workflow: false };
+  var NAV_GROUP_NAMESPACES = {
+    operate: ['llm', 'engagements', 'playbooks'],
+    library: ['mitre', 'mcp', 'targets'],
+    workflow: ['approvals', 'credentials'],
+  };
+
+  function readNavLs() {
+    try {
+      var raw = localStorage.getItem(NAV_LS_KEY);
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (e) { return {}; }
+  }
+
+  function writeNavLs(open) {
+    try { localStorage.setItem(NAV_LS_KEY, JSON.stringify(open)); }
+    catch (e) { /* private mode / disabled storage: silently ignore */ }
+  }
+
+  function readActiveNamespace() {
+    var nav = document.querySelector('[data-component="sidebar-nav"]');
+    return nav ? (nav.getAttribute('data-active-namespace') || '') : '';
+  }
+
+  function navGroups() {
+    return {
+      open: Object.assign({}, NAV_DEFAULT_OPEN),
+
+      init: function () {
+        var persisted = readNavLs();
+        for (var k in NAV_DEFAULT_OPEN) {
+          if (typeof persisted[k] === 'boolean') this.open[k] = persisted[k];
+        }
+        var ns = readActiveNamespace();
+        for (var g in NAV_GROUP_NAMESPACES) {
+          if (NAV_GROUP_NAMESPACES[g].indexOf(ns) !== -1) this.open[g] = true;
+        }
+      },
+
+      toggle: function (key) {
+        this.open[key] = !this.open[key];
+        writeNavLs(this.open);
+      },
+    };
+  }
+
+  window.navGroups = navGroups;
+
   document.addEventListener('alpine:init', function () {
     if (window.Alpine) {
       window.Alpine.data('liveLog', liveLog);
+      window.Alpine.data('navGroups', navGroups);
     }
   });
 })();
