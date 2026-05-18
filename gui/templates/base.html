@@ -92,7 +92,7 @@
         {% if active_membership and active_membership.can_approve_high_risk %}
         <div class="nav__divider" role="separator" aria-hidden="true"></div>
 
-        <div class="nav__group {% if ns in 'approvals credentials' %}nav__group--has-active{% endif %}"
+        <div class="nav__group {% if ns in 'approvals credentials' or request.resolver_match.url_name == 'users' %}nav__group--has-active{% endif %}"
              data-group="workflow">
           <button type="button"
                   class="nav__group__header"
@@ -114,6 +114,9 @@
             </a>
             <a href="{% url 'credentials:list' %}" class="nav__item {% if ns == 'credentials' %}is-active{% endif %}">
               <span class="nav__icon">⌬</span><span class="nav__label">Credentials</span>
+            </a>
+            <a href="{% url 'ui:users' %}" class="nav__item {% if ns == 'ui' and request.resolver_match.url_name == 'users' %}is-active{% endif %}">
+              <span class="nav__icon">⚇</span><span class="nav__label">Manage users</span>
             </a>
           </div>
         </div>

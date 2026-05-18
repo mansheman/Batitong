@@ -196,6 +196,40 @@
     {% endif %}
   </article>
 
+  {% if can_manage or user.is_superuser %}
+  <article class="card card--full" id="admin-tools">
+    <span class="card__num">09 / 09</span>
+    <h3 class="card__title">
+      Admin tools
+      <span class="badge badge--mono">phase 2d</span>
+    </h3>
+    <p class="card__body muted">
+      Workspace administration and the Django admin live here so you do not
+      have to remember separate URLs. Visibility is gated by role.
+    </p>
+    <div class="form-grid">
+      {% if can_manage %}
+        <div>
+          <a href="{% url 'ui:users' %}" class="btn">⚇ manage members</a>
+          <span class="field__hint">
+            Add or remove members of <code class="code">{{ active_workspace.slug }}</code>,
+            promote or demote between admin and user.
+          </span>
+        </div>
+      {% endif %}
+      {% if user.is_superuser %}
+        <div>
+          <a href="/admin/" class="btn btn--ghost">⚙ open django admin</a>
+          <span class="field__hint">
+            Only visible because your account is a Django superuser — distinct
+            from the workspace admin role. Useful for raw DB-level edits.
+          </span>
+        </div>
+      {% endif %}
+    </div>
+  </article>
+  {% endif %}
+
   <article class="card card--full" id="rate-limits">
     <span class="card__num">08 / 08</span>
     <h3 class="card__title">Rate limits</h3>

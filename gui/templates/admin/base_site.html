@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% comment %}
+  Phase 2D sub-PR 3/3 — high-touch re-skin of Django's admin (Q-FINAL Q3=(b)).
+  Only the surfaces that admins actually touch every day are restyled
+  (login, header/nav, change-list, change-form). The default templates
+  underneath stay intact so future Django upgrades keep working.
+{% endcomment %}
+
+{% block title %}{{ title }} · batitong admin{% endblock %}
+
+{% block branding %}
+<div id="batitong-admin-banner" data-component="admin-banner">
+  <a href="/dashboard/" class="batitong-admin-banner__link">
+    ← Back to Batitong
+  </a>
+  <span class="batitong-admin-banner__sep">·</span>
+  <span class="batitong-admin-banner__label">django admin</span>
+  <span class="batitong-admin-banner__hint">superuser only — workspace admin lives in /dashboard/users/</span>
+</div>
+<h1 id="site-name"><a href="{% url 'admin:index' %}">batitong control plane</a></h1>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_skin.css' %}">
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

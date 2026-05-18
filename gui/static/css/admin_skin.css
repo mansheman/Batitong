@@ -1,0 +1,137 @@
+/* =============================================================================
+ * batitong — admin re-skin (Phase 2D sub-PR 3/3, Q-FINAL Q3=(b))
+ *
+ * High-touch surfaces only: login + header/nav + change-list + change-form.
+ * The default Django admin templates underneath are unchanged; this CSS
+ * overlays the design tokens already used by the dashboard so the two
+ * UIs no longer feel like they belong to different apps.
+ *
+ * Token names match gui/static/css/batitong.css but are duplicated here
+ * because the admin page does NOT load that stylesheet (different layout
+ * fundamentals). Keep this file ~120 LOC; if it grows beyond ~200 LOC
+ * revisit Q3 to decide whether to graduate to a full custom admin theme.
+ * ===========================================================================*/
+
+:root {
+  --batitong-bg-0: #0a0a0a;
+  --batitong-bg-1: #111111;
+  --batitong-bg-2: #161616;
+  --batitong-bg-3: #1d1d1d;
+  --batitong-line: #232323;
+  --batitong-line-2: #2c2c2c;
+  --batitong-text: #e7e7e7;
+  --batitong-text-muted: #8a8a8a;
+  --batitong-text-dim: #5a5a5a;
+  --batitong-accent: #00ff88;
+  --batitong-warn: #ffb13b;
+  --batitong-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* ----- Page chrome ------------------------------------------------------- */
+body, html {
+  background: var(--batitong-bg-0);
+  color: var(--batitong-text);
+}
+body.login { background: var(--batitong-bg-0); }
+#container { background: var(--batitong-bg-0); }
+#header {
+  background: linear-gradient(180deg, var(--batitong-bg-1), var(--batitong-bg-0));
+  border-bottom: 1px solid var(--batitong-line);
+  color: var(--batitong-text);
+}
+#header a:link, #header a:visited { color: var(--batitong-text); }
+#site-name a, #site-name a:visited { color: var(--batitong-text); }
+
+/* "Back to Batitong" banner — sits above the site title (Q-FINAL Q5=(a)). */
+#batitong-admin-banner {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-family: var(--batitong-font-mono);
+  font-size: 12px;
+  color: var(--batitong-text-muted);
+  padding: 4px 0 8px;
+  border-bottom: 1px dashed var(--batitong-line);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.batitong-admin-banner__link {
+  color: var(--batitong-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.batitong-admin-banner__link:hover {
+  border-bottom-color: var(--batitong-accent);
+}
+.batitong-admin-banner__sep { color: var(--batitong-text-dim); }
+.batitong-admin-banner__label { color: var(--batitong-text-muted); }
+.batitong-admin-banner__hint { color: var(--batitong-text-dim); }
+.batitong-admin-login-sub {
+  font-family: var(--batitong-font-mono);
+  font-size: 12px;
+  color: var(--batitong-text-muted);
+}
+
+/* ----- Login surface ----------------------------------------------------- */
+.login #container {
+  background: var(--batitong-bg-1);
+  border: 1px solid var(--batitong-line);
+  border-radius: 12px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+}
+.login #header { background: transparent; border-bottom: 1px solid var(--batitong-line); }
+.login .form-row input { background: var(--batitong-bg-2); color: var(--batitong-text); border: 1px solid var(--batitong-line); border-radius: 6px; padding: 8px 10px; }
+.login .submit-row input { background: var(--batitong-accent); color: #001a0e; border: 0; padding: 9px 14px; border-radius: 6px; font-weight: 700; }
+
+/* ----- Module / change-list --------------------------------------------- */
+.module, .dashboard .module {
+  background: var(--batitong-bg-1);
+  border: 1px solid var(--batitong-line);
+  border-radius: 8px;
+  color: var(--batitong-text);
+}
+.module h2, .module caption, .module table caption {
+  background: var(--batitong-bg-2);
+  color: var(--batitong-text);
+  border-bottom: 1px solid var(--batitong-line);
+}
+#changelist table thead th {
+  background: var(--batitong-bg-2);
+  color: var(--batitong-text-muted);
+  border-bottom: 1px solid var(--batitong-line);
+}
+#changelist table tbody tr { background: var(--batitong-bg-1); }
+#changelist table tbody tr:hover { background: var(--batitong-bg-2); }
+#changelist-filter { background: var(--batitong-bg-1); border-left: 1px solid var(--batitong-line); }
+#changelist-filter h2, #changelist-filter h3 { color: var(--batitong-text-muted); }
+.paginator a { color: var(--batitong-accent); }
+
+/* ----- Change-form ------------------------------------------------------- */
+.submit-row { background: var(--batitong-bg-2); border-top: 1px solid var(--batitong-line); }
+.submit-row input.default {
+  background: var(--batitong-accent);
+  color: #001a0e;
+  border: 0;
+  font-weight: 700;
+}
+fieldset.module { border-color: var(--batitong-line); }
+.form-row { border-bottom: 1px solid var(--batitong-line); }
+.form-row label { color: var(--batitong-text-muted); }
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea {
+  background: var(--batitong-bg-2) !important;
+  color: var(--batitong-text) !important;
+  border: 1px solid var(--batitong-line) !important;
+  border-radius: 6px !important;
+}
+
+/* ----- Links / breadcrumbs ---------------------------------------------- */
+a:link, a:visited { color: var(--batitong-accent); }
+a:hover { color: #00e57a; }
+div.breadcrumbs {
+  background: var(--batitong-bg-1);
+  color: var(--batitong-text-muted);
+  border-bottom: 1px solid var(--batitong-line);
+  font-family: var(--batitong-font-mono);
+  font-size: 12px;
+}
+div.breadcrumbs a { color: var(--batitong-accent); }
