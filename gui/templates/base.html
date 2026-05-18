@@ -10,7 +10,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{% static 'css/batitong.css' %}" />
+  {# app.js MUST load before alpine.min.js so window.navGroups (and other Alpine
+     globals) are defined by the time Alpine evaluates x-data expressions.
+     Alpine 3 auto-starts during script execution when document.readyState is
+     'interactive' (which is the case for deferred scripts), so the order matters. #}
   <script defer src="{% static 'vendor/htmx.min.js' %}"></script>
+  <script defer src="{% static 'js/app.js' %}"></script>
   <script defer src="{% static 'vendor/alpine.min.js' %}"></script>
   {% block head_extra %}{% endblock %}
 </head>
@@ -26,7 +31,7 @@
 
       {% with ns=request.resolver_match.namespace %}
       <nav class="nav"
-           x-data="navGroups()"
+           x-data="navGroups"
            data-component="sidebar-nav"
            data-active-namespace="{{ ns|default:'' }}">
         <a href="{% url 'ui:dashboard' %}"
@@ -189,7 +194,6 @@
     </main>
   </div>
 
-  <script src="{% static 'js/app.js' %}" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

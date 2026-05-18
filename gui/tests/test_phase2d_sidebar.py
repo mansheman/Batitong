@@ -10,10 +10,16 @@ Adversarial assertions for the verb-first grouped sidebar:
 * T6  — Workflow header shows a count badge when approvals are pending
 * T7  — ``data-active-namespace`` reflects the current resolver namespace
 * T8  — the group containing the active page is tagged ``has-active``
-* T9  — Alpine ``x-data="navGroups()"`` is bound on the <nav>
+* T9  — Alpine ``x-data="navGroups"`` is bound on the <nav> (registry lookup,
+        no parens — calling the global directly would race with Alpine's
+        auto-start when scripts are deferred)
 * T10 — app.js defines navGroups() and uses the documented localStorage key
 * T11 — batitong.css defines the new .nav__group* classes
 * T12 — the old flat ten-link nav is gone (links live inside the new groups)
+* T13 — app.js is loaded BEFORE alpine.min.js in base.html so window.navGroups
+        is defined when Alpine evaluates ``x-data`` expressions (prevents the
+        ``Alpine Expression Error: navGroups is not defined`` regression that
+        broke every group toggle / persistence path on the live page)
 """
 
 from __future__ import annotations
@@ -188,9 +194,18 @@ def test_t8_active_group_marked_with_has_active_class(client, user, membership):
 # ---------------------------------------------------------------------------
 @pytest.mark.django_db
 def test_t9_alpine_navgroups_component_bound(client, user, membership):
-    """T9: the <nav> is bound to the Alpine navGroups() component."""
+    """T9: the <nav> is bound to the Alpine ``navGroups`` component.
+
+    We resolve the component via Alpine's data registry (``x-data="navGroups"``,
+    NO parens) rather than invoking the global function directly
+    (``x-data="navGroups()"``). Calling the global races with Alpine's
+    auto-start under deferred-script ordering — Alpine evaluates the
+    expression before app.js has had a chance to attach ``window.navGroups``.
+    """
     body = _dashboard_html(client, user, membership)
-    assert 'x-data="navGroups()"' in body
+    assert 'x-data="navGroups"' in body
+    # Explicitly assert the racy form is GONE — regression guard.
+    assert 'x-data="navGroups()"' not in body
 
 
 def test_t10_app_js_defines_navgroups_with_localstorage_key():
@@ -240,10 +255,38 @@ def test_t12_old_flat_nav_structure_removed():
     """
     template_src = TEMPLATE_PATH.read_text(encoding="utf-8")
     # The Alpine binding + group structure markers are present.
-    assert 'x-data="navGroups()"' in template_src
+    assert 'x-data="navGroups"' in template_src
     assert 'data-group="operate"' in template_src
     assert 'data-group="library"' in template_src
     assert 'data-group="workflow"' in template_src
     # Exactly one ``data-group-header`` per group (3 total).
     assert template_src.count("data-group-header=") == 3
     assert template_src.count("data-group-body=") == 3
+
+
+# ---------------------------------------------------------------------------
+# T13 — script load order (regression guard)
+# ---------------------------------------------------------------------------
+def test_t13_app_js_loaded_before_alpine_min_js():
+    """T13: ``app.js`` MUST appear before ``alpine.min.js`` in base.html.
+
+    Under deferred-script ordering (HTML5 spec), defer scripts execute in
+    document order after parsing. Alpine 3 auto-starts when its script runs
+    against a document whose readyState is already ``interactive``
+    (which is the case after parsing for deferred scripts). If app.js loads
+    AFTER alpine.min.js, Alpine evaluates every ``x-data="navGroups"``
+    expression before app.js has defined ``window.navGroups``, producing a
+    silent ``Alpine Expression Error: navGroups is not defined`` warning and
+    leaving the sidebar in its default-collapsed unstyled state (no Alpine
+    component attached). All subsequent toggle / persistence behaviour is
+    then broken at runtime even though server-rendered markup looks fine.
+    """
+    template_src = TEMPLATE_PATH.read_text(encoding="utf-8")
+    app_js_idx = template_src.find("js/app.js")
+    alpine_idx = template_src.find("vendor/alpine.min.js")
+    assert app_js_idx != -1, "app.js script tag missing from base.html"
+    assert alpine_idx != -1, "alpine.min.js script tag missing from base.html"
+    assert app_js_idx < alpine_idx, (
+        "app.js must load BEFORE alpine.min.js so window.navGroups is defined "
+        "when Alpine evaluates x-data expressions on auto-start."
+    )
