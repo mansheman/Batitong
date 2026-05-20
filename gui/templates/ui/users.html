@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}users{% endblock %}
+{% block crumb %}~/users{% endblock %}
+
+{% block content %}
+<section class="block">
+  <header class="block__header">
+    <h2 class="block__title">Workspace members</h2>
+    <span class="badge badge--mono">phase 2d</span>
+  </header>
+  <p class="muted mono">
+    Manage who can run tools, approve high-risk operations, and edit workspace
+    settings in <code class="code">{{ active_workspace.name }}</code>.
+    Lookup-only: members must already exist as Batitong users.
+  </p>
+
+  <article class="card card--full">
+    <span class="card__num">01 / 02</span>
+    <h3 class="card__title">Add member</h3>
+    <p class="card__body muted">
+      Type an exact username or email of an existing Batitong user.
+      They will join this workspace as <code class="code">user</code> —
+      promote them below if you need admin capabilities.
+    </p>
+    <form method="post" action="{% url 'ui:users_add' %}" class="form-grid">
+      {% csrf_token %}
+      <label class="field">
+        <span class="field__label">username or email</span>
+        <input
+          type="text"
+          name="identifier"
+          class="input input--mono"
+          autocomplete="off"
+          spellcheck="false"
+          required
+        />
+      </label>
+      <div class="form-grid__actions">
+        <button type="submit" class="btn btn--primary">+ add member</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="card card--full">
+    <span class="card__num">02 / 02</span>
+    <h3 class="card__title">
+      Members
+      <span class="badge badge--mono">{{ rows|length }}</span>
+      <span class="badge badge--ok">{{ admin_count }} admin{{ admin_count|pluralize }}</span>
+    </h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>user</th>
+          <th>email</th>
+          <th>role</th>
+          <th>joined</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="mono">
+            {{ row.membership.user.username }}
+            {% if row.is_self %}<span class="badge badge--mono">you</span>{% endif %}
+            {% if row.is_sole_admin %}
+              <span class="badge badge--warn" title="The sole remaining admin cannot be demoted or removed.">sole admin</span>
+            {% endif %}
+          </td>
+          <td class="mono">{{ row.membership.user.email }}</td>
+          <td>
+            {% if row.membership.role == 'admin' %}
+              <span class="badge badge--ok">admin</span>
+            {% else %}
+              <span class="badge badge--mono">user</span>
+            {% endif %}
+          </td>
+          <td class="mono">{{ row.membership.created_at|date:'Y-m-d' }}</td>
+          <td class="mono">
+            <form
+              method="post"
+              action="{% url 'ui:users_change_role' membership_id=row.membership.id %}"
+              style="display:inline"
+            >
+              {% csrf_token %}
+              {% if row.membership.role == 'admin' %}
+                <input type="hidden" name="role" value="user" />
+                {% if row.can_demote %}
+                  <button type="submit" class="link link--mono">demote to user</button>
+                {% else %}
+                  <button
+                    type="submit"
+                    class="link link--mono"
+                    disabled
+                    title="Sole admin cannot be demoted."
+                  >demote to user</button>
+                {% endif %}
+              {% else %}
+                <input type="hidden" name="role" value="admin" />
+                <button type="submit" class="link link--mono">promote to admin</button>
+              {% endif %}
+            </form>
+            <form
+              method="post"
+              action="{% url 'ui:users_remove' membership_id=row.membership.id %}"
+              style="display:inline"
+              onsubmit="return confirm('Remove {{ row.membership.user.username }} from this workspace?');"
+            >
+              {% csrf_token %}
+              {% if row.can_remove %}
+                <button type="submit" class="link link--mono">remove</button>
+              {% else %}
+                <button
+                  type="submit"
+                  class="link link--mono"
+                  disabled
+                  title="Sole admin cannot be removed."
+                >remove</button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="table__empty">
+            No memberships yet — add the first member above.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+{% endblock %}

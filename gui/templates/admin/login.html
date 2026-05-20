@@ -1,0 +1,17 @@
+{% extends "admin/login.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_skin.css' %}">
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}">batitong control plane</a>
+</h1>
+<p class="batitong-admin-login-sub">
+  superuser login — for workspace admin tools, use
+  <a href="/dashboard/">Back to Batitong</a>.
+</p>
+{% endblock %}
